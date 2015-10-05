@@ -41,7 +41,7 @@ class Parser:
             '  (default=diff)'}),
 
         # running options
-        'compile' : (('-r', '--nocompile'), {dest:'compile', action:'store_false',
+        'compile' : (('--no-compile',), {dest:'compile', action:'store_false',
             help:'do not try to compile'}),
         'execute' : (('-x', '--execute'), {dest:'execute', action:'store_true',
             help:'treat programs as bash commands'}),

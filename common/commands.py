@@ -24,16 +24,18 @@ Program types      -- What is recognized and smartly processed.
   
 '''
 
-import os, subprocess
-from common.messages import error, warning, infob, infog
+import sys, os, subprocess
+from common.messages import error, warning, infob, infog, colorize
 
 def isfilenewer(file1, file2):
     if not os.path.exists(file1) or not os.path.exists(file2):
         return None
     return os.path.getctime(file1) > os.path.getctime(file2)
 
-def toalnum(s):
+def tobasealnum(s):
+    s = s.split('/')[-1]
     return ''.join([x for x in s if str.isalnum(x)])
+
     
 ext_c = ['cpp', 'cc', 'c']
 ext_pas = ['pas']
@@ -45,7 +47,8 @@ compile_ext = ext_c + ext_pas + ext_java
 script_ext = ext_py3 + ext_py2
 
 class Program:
-    def transform(self):
+
+    def transform(self): #{{{
         name = self.name
         self.compilecmd = None
         self.source = None
@@ -54,7 +57,7 @@ class Program:
         self.filestoclear = []
         
         # if it is final command, dont do anything
-        if self.args.execute or len(name.split())>1:
+        if self.forceexecute or len(name.split())>1:
             return
 
         # compute source, binary and extension
@@ -77,7 +80,7 @@ class Program:
             self.runcmd = self.source
 
         docompile = (
-            self.args.compile and 
+            self.cancompile and 
             (self.ext in compile_ext) and 
             (self.source == name or 
              not os.path.exists(self.runcmd) or
@@ -96,31 +99,34 @@ class Program:
                 self.compilecmd = 'javac %s' % self.source
                 self.filestoclear.append(self.runcmd + '.class')
 
-        if os.access(self.runcmd, os.X_OK):
-            if self.runcmd.isalnum():
-                self.runcmd = './'+self.runcmd
-        else:
+        if not os.access(self.runcmd, os.X_OK):
             if self.ext in ext_py3:
                 self.runcmd = 'python3 ' + self.source
             if self.ext in ext_py2:
                 self.runcmd = 'python2 ' + self.source
             if self.ext in ext_java:
                 self.runcmd = 'java ' + self.runcmd
+    #}}}
 
     def prepare(self):
-        so = subprocess.PIPE if self.args.quiet else None
-        se = subprocess.STDOUT if self.args.quiet else None
-
-        if self.compilecmd == None:
-            ready = True
-        else: 
+        so = subprocess.PIPE if self.quiet else None
+        se = subprocess.STDOUT if self.quiet else None
+        if self.compilecmd != None:
             infob('Compiling: %s' % self.compilecmd)
             try:
                 subprocess.check_call(self.compilecmd, shell=True, 
                     stdout=so ,stderr=se)
-                ready = True
             except:
-                error('Compile failed')
+                error('Compilation failed.')
+        
+        if (not self.forceexecute and 
+            os.access(self.runcmd, os.X_OK) and 
+            self.runcmd[0].isalnum()):
+            self.runcmd = './'+self.runcmd
+
+        if isinstance(self,Solution):
+            Solution.cmd_maxlen = max(Solution.cmd_maxlen, len(self.runcmd))
+        self.ready = True
     
     def clearfiles(self):
         for f in self.filestoclear:
@@ -131,27 +137,109 @@ class Program:
 
     def __init__(self, name, args):
         self.name = name
-        self.args = args
+        self.quiet = args.quiet
+        self.cancompile = args.compile
+        self.forceexecute = args.execute
         self.ready = False
 
         # compute runcmd, compilecmd and filestoclear
         self.transform()
 
 class Solution(Program):
-    def timecmd(self, timelimit=0):
-        timekill = 'timeout %s' % timelimit if timelimit else ''
-        return '/usr/bin/time -f "%s" -q 2>&1 %s' % ('%U', timekill)
+    cmd_maxlen = 0
     
-    def run(self, inputname):
-        input_file = ''
-        output_file = ''
-        result_file = ''
+    def __init__(self, name, args):
+        super().__init__(name, args)
+        self.statistics = {
+            'maxtime': 0,
+            'sumtime': 0,
+            'batchresults': {},
+        }
+    
+    def timecmd(self, timefile, timelimit=0):
+        timekill = 'timeout %s' % timelimit if timelimit else ''
+        return '/usr/bin/time -f "%s" -o %s -q %s' % ('%U', timefile, timekill)
+    
+    def run(self, ifile, ofile, tfile, checker, args):
+        if not self.ready:
+            error('%s not prepared for execution' % self.name)
+        so = subprocess.PIPE if self.quiet else None
+        se = subprocess.PIPE if self.quiet else None
+        timefile = '.temptime-%s-%s-%s' % (
+            tobasealnum(self.name),
+            tobasealnum(ifile),
+            os.getpid(),
+        )
+        # run solution
+        usertime = ''
+        timecmd = self.timecmd(timefile, int(args.timelimit))
+        cmd = '%s %s < %s > %s' % (timecmd, self.runcmd, ifile, tfile)
+        try:
+            result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
+            usertime = float(open(timefile,'r').read().strip())
+            if result == 0:     status = 'OK'
+            elif result == 124: status = 'TLE'
+            elif result > 0:    status = 'EXC'
+            else:               status = 'INT'
 
-        timecmd = self.timecmd(int(self.args.timelimit))
-        cmd = '%s %s '
+            if status == 'OK':
+                checkres = checker.check(ifile, ofile, tfile)
+                if checkres != 0:
+                    status = 'WA'
+                    if checkres != 1:
+                        warning('Checker exited with status %s' % checkres)
+        except Exception as e:
+            result = -1
+            status = 'INT'
+            warning(str(e))
+        finally:
+            if os.path.exists(timefile):
+                os.remove(timefile)
+
+        # construct summary
+       
+        runcmd = ('{:<'+str(Solution.cmd_maxlen)+'s}').format(self.runcmd)
+        time = '{:5d}'.format(int(usertime*1000))
+
+        if args.inside_oneline:
+            input = ('{:'+str(args.inside_inputmaxlen)+'s}').format(
+                (ifile.rsplit('/', 1)[1]))
+            summary = '%s < %s %sms.' % (runcmd,input,time)
+        else:
+            summary = '    %s  %sms.' % (runcmd,time)
+       
+        okwastatus = 'OK' if status == 'OK' else 'WA'
+        print(colorize(okwastatus,summary), colorize(status,status,True))
+        
+        if status == 'INT':
+            error('Internal error. Testing will not continue', doquit=True)
+
 
 class Checker(Program):
-    pass
+    def __init__(self, name, args):
+        super().__init__(name, args)
+        if name=='diff':
+            self.runcmd = 'diff'
+            self.compilecmd = None
+            self.forceexecute = True
+
+    def diff_cmd(self, ifile, ofile, tfile):
+        diff_map = {
+            'diff' : ' %s %s > /dev/null' % (ofile, tfile), 
+            'check' : ' %s %s %s > /dev/null' % (ifile, ofile, tfile), 
+            'chito' : ' %s %s %s > /dev/null' % (ifile, tfile, ofile), 
+            'test' : ' %s %s %s %s %s' % ('./', './', ifile, ofile, tfile), 
+        }
+        for key in diff_map:
+            if tobasealnum(self.name).startswith(key):
+                return self.runcmd + diff_map[key]
+        return None
+
+    def check(self, ifile, ofile, tfile):
+        se = subprocess.PIPE if self.quiet else None
+        return subprocess.call(
+            self.diff_cmd(ifile, ofile, tfile),
+            shell=True, stderr=se) 
 
 class Generator(Program):
     pass
