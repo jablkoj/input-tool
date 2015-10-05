@@ -199,7 +199,7 @@ class Solution(Program):
         # construct summary
        
         runcmd = ('{:<'+str(Solution.cmd_maxlen)+'s}').format(self.runcmd)
-        time = '{:5d}'.format(int(usertime*1000))
+        time = '{:6d}'.format(int(usertime*1000))
 
         if args.inside_oneline:
             input = ('{:'+str(args.inside_inputmaxlen)+'s}').format(
