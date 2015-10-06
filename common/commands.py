@@ -1,5 +1,5 @@
 # (c) 2014 jano <janoh@ksp.sk>
-''' 
+'''
 Basic behaviour you need to understand if you want to use this
 
 Naming conventions -- Type of file is determined by prefix.
@@ -9,13 +9,13 @@ Naming conventions -- Type of file is determined by prefix.
                       Stderr is ignored.
   val - validator  -- Gets input on stdin, prints one line (optional)
                       and returns 0 (good input) / 1 (bad input).
-  diff, check, ch_ito_, test - checker 
+  diff, check, ch_ito_, test - checker
                    -- Gets arguments with names of files.
-  <other>          -- Anything. E.g. you can use arbitrary program as generator, 
+  <other>          -- Anything. E.g. you can use arbitrary program as generator,
                       but dont use sol*, val*, diff*, ...
-  Split parts of names by '-' not '_'. 
+  Split parts of names by '-' not '_'.
   In solutions, parts can be score, author, algorithm, complexity
-  in this order. E.g. sol-100-jano-n2.cpp, sol-jano.cpp, sol-40.cpp 
+  in this order. E.g. sol-100-jano-n2.cpp, sol-jano.cpp, sol-40.cpp
   (if second part is an integer, it is treated as score).
 
 Program types      -- What is recognized and smartly processed.
@@ -25,22 +25,26 @@ Program types      -- What is recognized and smartly processed.
                       Then run ./noextension if file exists and noextension otherwise.
   program.ext      -- If c/cc/c++/pas/java, compile and run binary.
   program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
-  
+
 '''
 
-import sys, os, subprocess
+import sys
+import os
+import subprocess
 from common.messages import *
+
 
 def isfilenewer(file1, file2):
     if not os.path.exists(file1) or not os.path.exists(file2):
         return None
     return os.path.getctime(file1) > os.path.getctime(file2)
 
+
 def tobasealnum(s):
     s = s.split('/')[-1]
     return ''.join([x for x in s if str.isalnum(x)])
 
-    
+
 ext_c = ['cpp', 'cc', 'c']
 ext_pas = ['pas']
 ext_java = ['java']
@@ -50,48 +54,50 @@ all_ext = ext_c + ext_pas + ext_java + ext_py3 + ext_py2
 compile_ext = ext_c + ext_pas + ext_java
 script_ext = ext_py3 + ext_py2
 
-class Program: # {{{
+
+class Program:  # {{{
+
     def compare_mask(self):
         return (0, self.name)
 
     def __lt__(self, other):
         return self.compare_mask() < other.compare_mask()
 
-    def transform(self): 
+    def transform(self):
         name = self.name
         self.compilecmd = None
         self.source = None
         self.ext = None
         self.runcmd = name
         self.filestoclear = []
-        
+
         # if it is final command, dont do anything
-        if self.forceexecute or len(name.split())>1:
+        if self.forceexecute or len(name.split()) > 1:
             return
 
         # compute source, binary and extension
         if not '.' in name:
             for ext in all_ext:
-                if os.path.exists(name+'.'+ext):
-                    self.source = name+'.'+ext
+                if os.path.exists(name + '.' + ext):
+                    self.source = name + '.' + ext
                     self.ext = ext
                     break
         else:
             self.source = name
             self.runcmd, self.ext = name.rsplit('.', 1)
-        
+
         if not self.ext in all_ext:
             self.runcmd = name
             return
-        
+
         # compute runcmd
         if self.ext in script_ext:
             self.runcmd = self.source
 
         docompile = (
-            self.cancompile and 
-            (self.ext in compile_ext) and 
-            (self.source == name or 
+            self.cancompile and
+            (self.ext in compile_ext) and
+            (self.source == name or
              not os.path.exists(self.runcmd) or
              isfilenewer(self.source, self.runcmd))
         )
@@ -122,23 +128,23 @@ class Program: # {{{
             se = subprocess.STDOUT if self.quiet else None
             infob('Compiling: %s' % self.compilecmd)
             try:
-                subprocess.check_call(self.compilecmd, shell=True, 
-                    stdout=so ,stderr=se)
+                subprocess.check_call(self.compilecmd, shell=True,
+                                      stdout=so, stderr=se)
             except:
                 error('Compilation failed.')
-        
-        if (not self.forceexecute and 
-            os.access(self.runcmd, os.X_OK) and 
-            self.runcmd[0].isalnum()):
-            self.runcmd = './'+self.runcmd
 
-        if isinstance(self,Solution):
+        if (not self.forceexecute and
+            os.access(self.runcmd, os.X_OK) and
+                self.runcmd[0].isalnum()):
+            self.runcmd = './' + self.runcmd
+
+        if isinstance(self, Solution):
             Solution.cmd_maxlen = max(Solution.cmd_maxlen, len(self.runcmd))
         self.ready = True
-    
+
     def clearfiles(self):
         for f in self.filestoclear:
-            if os.path.exists(f): 
+            if os.path.exists(f):
                 os.remove(f)
             else:
                 warning('Not found %s' % f)
@@ -154,28 +160,33 @@ class Program: # {{{
         self.transform()
 #}}}
 
-class Solution(Program): #{{{
+
+class Solution(Program):  # {{{
     cmd_maxlen = len('Solution')
 
     def updated_status(original, new):
-        if original == 'OK': return new
-        if new == 'OK': return original
+        if original == 'OK':
+            return new
+        if new == 'OK':
+            return original
         if original == 'INT' or new == 'INT':
             return 'INT'
         return original
-    
+
     def compare_mask(self):
-        filename = self.name.rsplit(' ',1)[-1].rsplit('/',1)[-1].rsplit('.',1)[0]
+        filename = self.name.rsplit(' ', 1)[
+            -1].rsplit('/', 1)[-1].rsplit('.', 1)[0]
         score = 0
         parts = filename.split('-')
         if 'vzorak' in parts or 'vzor' in parts:
-            score+=2000
+            score += 2000
         if filename.startswith('sol'):
-            if len(filename)==3: score+=1000
+            if len(filename) == 3:
+                score += 1000
             if len(parts) > 1 and parts[1].isnumeric():
-                score+=int(parts[1])
+                score += int(parts[1])
         return (-1, -score, self.name)
-    
+
     def __init__(self, name, args):
         super().__init__(name, args)
         self.statistics = {
@@ -184,37 +195,39 @@ class Solution(Program): #{{{
             'batchresults': {},
             'overallresult': 'OK',
         }
-    
+
     def get_statistics_header(inputs):
-        sol = ('{:'+str(Solution.cmd_maxlen)+'s}').format('Solution')
-        batches = set([x.rsplit('.', 2)[0] 
+        sol = ('{:' + str(Solution.cmd_maxlen) + 's}').format('Solution')
+        batches = set([x.rsplit('.', 2)[0]
                       for x in inputs if not 'sample' in x])
         pts = len(batches)
 
-        return headercolor()+('\n'+
-            '| %s | Max time | Times sum | Pt %3d | Status |\n' % (sol, pts) +
-            '|-%s-|----------|-----------|--------|--------|' % ('-'*len(sol))
-        )+resetcolor()
+        return headercolor() + ('\n' +
+                                '| %s | Max time | Times sum | Pt %3d | Status |\n' % (sol, pts) +
+                                '|-%s-|----------|-----------|--------|--------|' % (
+                                    '-' * len(sol))
+                                ) + resetcolor()
 
     def get_statistics(self):
         points, maxpoints = 0, 0
         for key in self.statistics['batchresults']:
-            if 'sample' in key: continue
+            if 'sample' in key:
+                continue
             maxpoints += 1
             if self.statistics['batchresults'][key] == 'OK':
                 points += 1
         color = scorecolor(points, maxpoints)
         hcolor = headercolor()
 
-        runcmd = ('{:'+str(Solution.cmd_maxlen)+'s}').format(self.runcmd)
+        runcmd = ('{:' + str(Solution.cmd_maxlen) + 's}').format(self.runcmd)
         status = self.statistics['overallresult']
         status = colorize(status, '{:3s}'.format(status), True)
-    
-        line =  '|| %s || %8d || %9d ||    %3d ||   |<|%s|>|  |||<|' % (
+
+        line = '|| %s || %8d || %9d ||    %3d ||   |<|%s|>|  |||<|' % (
             runcmd, self.statistics['maxtime'], self.statistics['sumtime'],
             points, status
         )
-        line = line.replace('||', hcolor+'|'+color)
+        line = line.replace('||', hcolor + '|' + color)
         line = line.replace('|<|', resetcolor())
         line = line.replace('|>|', color)
 
@@ -223,19 +236,20 @@ class Solution(Program): #{{{
     def record(self, ifile, status, time):
         input = ifile.rsplit('/', 1)[1].rsplit('.', 1)[0]
         batch = input.rsplit('.', 1)[0]
-        batchresults = self.statistics['batchresults']    
+        batchresults = self.statistics['batchresults']
         batchresults[batch] = Solution.updated_status(
             batchresults.get(batch, 'OK'),
             status)
-        self.statistics['maxtime'] = max(self.statistics['maxtime'], int(time*1000))
-        self.statistics['sumtime'] += int(time*1000)
+        self.statistics['maxtime'] = max(
+            self.statistics['maxtime'], int(time * 1000))
+        self.statistics['sumtime'] += int(time * 1000)
         self.statistics['overallresult'] = Solution.updated_status(
-            self.statistics['overallresult'],status)
+            self.statistics['overallresult'], status)
 
     def timecmd(self, timefile, timelimit=0):
         timekill = 'timeout %s' % timelimit if timelimit else ''
         return '/usr/bin/time -f "%s" -o %s -q %s' % ('%U', timefile, timekill)
-    
+
     def run(self, ifile, ofile, tfile, checker, args):
         if not self.ready:
             error('%s not prepared for execution' % self.name)
@@ -252,11 +266,15 @@ class Solution(Program): #{{{
         cmd = '%s %s < %s > %s' % (timecmd, self.runcmd, ifile, tfile)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
-            usertime = float(open(timefile,'r').read().strip())
-            if result == 0:     status = 'OK'
-            elif result == 124: status = 'TLE'
-            elif result > 0:    status = 'EXC'
-            else:               status = 'INT'
+            usertime = float(open(timefile, 'r').read().strip())
+            if result == 0:
+                status = 'OK'
+            elif result == 124:
+                status = 'TLE'
+            elif result > 0:
+                status = 'EXC'
+            else:
+                status = 'INT'
 
             if status == 'OK':
                 checkres = checker.check(ifile, ofile, tfile)
@@ -274,45 +292,49 @@ class Solution(Program): #{{{
 
         # construct summary
         self.record(ifile, status, usertime)
-        runcmd = ('{:<'+str(Solution.cmd_maxlen)+'s}').format(self.runcmd)
-        time = '{:6d}'.format(int(usertime*1000))
+        runcmd = ('{:<' + str(Solution.cmd_maxlen) + 's}').format(self.runcmd)
+        time = '{:6d}'.format(int(usertime * 1000))
 
         if args.inside_oneline:
-            input = ('{:'+str(args.inside_inputmaxlen)+'s}').format(
+            input = ('{:' + str(args.inside_inputmaxlen) + 's}').format(
                 (ifile.rsplit('/', 1)[1]))
-            summary = '%s < %s %sms.' % (runcmd,input,time)
+            summary = '%s < %s %sms.' % (runcmd, input, time)
         else:
-            summary = '    %s  %sms.' % (runcmd,time)
-       
+            summary = '    %s  %sms.' % (runcmd, time)
+
         okwastatus = 'OK' if status == 'OK' else 'WA'
-        print(colorize(okwastatus,summary), colorize(status,status,True))
-        
+        print(colorize(okwastatus, summary), colorize(status, status, True))
+
         if status == 'INT':
             error('Internal error. Testing will not continue', doquit=True)
 #}}}
 
-class Validator(Program): #{{{
+
+class Validator(Program):  # {{{
+
     def compare_mask(self):
         return (-2, self.name)
 #}}}
 
-class Checker(Program): #{{{
+
+class Checker(Program):  # {{{
+
     def compare_mask(self):
         return (-3, self.name)
-    
+
     def __init__(self, name, args):
         super().__init__(name, args)
-        if name=='diff':
+        if name == 'diff':
             self.runcmd = 'diff'
             self.compilecmd = None
             self.forceexecute = True
 
     def diff_cmd(self, ifile, ofile, tfile):
         diff_map = {
-            'diff' : ' %s %s > /dev/null' % (ofile, tfile), 
-            'check' : ' %s %s %s > /dev/null' % (ifile, ofile, tfile), 
-            'chito' : ' %s %s %s > /dev/null' % (ifile, tfile, ofile), 
-            'test' : ' %s %s %s %s %s' % ('./', './', ifile, ofile, tfile), 
+            'diff': ' %s %s > /dev/null' % (ofile, tfile),
+            'check': ' %s %s %s > /dev/null' % (ifile, ofile, tfile),
+            'chito': ' %s %s %s > /dev/null' % (ifile, tfile, ofile),
+            'test': ' %s %s %s %s %s' % ('./', './', ifile, ofile, tfile),
         }
         for key in diff_map:
             if tobasealnum(self.name).startswith(key):
@@ -323,20 +345,21 @@ class Checker(Program): #{{{
         se = subprocess.PIPE if self.quiet else None
         return subprocess.call(
             self.diff_cmd(ifile, ofile, tfile),
-            shell=True, stderr=se) 
+            shell=True, stderr=se)
 #}}}
 
-class Generator(Program): #{{{
+
+class Generator(Program):  # {{{
+
     def compare_mask(self):
         return (-4, self.name)
 
     def generate(self, ifile, text):
         pass
-        
+
 #}}}
-         
-        
-    
+
+
 '''
 # compile the wrapper if turned on
 wrapper_binary = None

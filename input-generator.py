@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-# (c) 2014 jano <janoh@ksp.sk> 
+# (c) 2014 jano <janoh@ksp.sk>
 # Script that helps generating inputs for contests
 description = '''
 Input generator.
@@ -7,7 +7,7 @@ Generate inputs based on input description file. Each line is provided as input 
 generator. Empty lines separate batches.
 '''
 options = [
-    'indir', 'inext', 
+    'indir', 'inext',
     'compile', 'execute', 'gencmd',
     'colorful', 'quiet',
     'clearinput', 'clearbin',
@@ -18,10 +18,12 @@ from common.parser import Parser
 from common.recipes import Recipe
 from common.commands import Generator
 from common.messages import *
-import atexit, os, sys
+import atexit
+import os
+import sys
 
 parser = Parser(description, options)
-args =  parser.parse()
+args = parser.parse()
 messages_setup(args)
 
 if args.description:
@@ -36,10 +38,11 @@ programs = recipe.programs
 generator = Generator(args.gencmd, args)
 programs = [generator]
 
+
 def cleanup():
     if args.clearbin:
         for p in programs:
-            p.clearfiles() 
+            p.clearfiles()
 atexit.register(cleanup)
 
 for p in programs:
@@ -59,7 +62,7 @@ if len(filestoclear):
             info("  ommiting file '%s'" % file)
         else:
             os.remove('%s/%s' % (indir, file))
-    
+
 
 infob('Generating:')
 recipe.inputs.sort()
@@ -68,13 +71,13 @@ prev = None
 
 for input in recipe.inputs:
     ifile = input.get_name(path=indir + '/', ext=args.inext)
-    short = ('{:>'+str(leftw)+'s}').format(input.get_name(ext=args.inext))
+    short = ('{:>' + str(leftw) + 's}').format(input.get_name(ext=args.inext))
     text = input.get_text()
-    
+
     generator.generate(ifile, text)
-    
+
     if prev and prev.batch != input.batch:
-        print(' '*(leftw+4)+'.')
+        print(' ' * (leftw + 4) + '.')
     prev = input
 
     print('  %s  <  %s' % (short, text))
