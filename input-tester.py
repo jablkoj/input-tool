@@ -29,8 +29,7 @@ if args.colortest:
     
 messages_setup(args)
 
-# {{{ ----------- prepare programs ---------------- 
-
+# {{{ ------------ prepare programs ------------------
 solutions = []
 checker = Checker(args.diffcmd, args)
 for p in args.programs:
@@ -82,6 +81,7 @@ setattr(args, 'inside_oneline', len(solutions) <= 1)
 setattr(args, 'inside_inputmaxlen', max(map(len, inputs)))
 
 #}}}
+
 # ------------ test solutions ----------------
 
 for input in inputs: 

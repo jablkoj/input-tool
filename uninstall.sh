@@ -17,7 +17,7 @@ function error {
 }
 
 path="/usr/local/bin"
-files="input-tester" #input-sample" # input-generator"
+files="input-tester input-generator" #input-sample"
 for f in $files; do
     cmd="sudo rm $path/$f"
     echo $cmd

@@ -50,14 +50,14 @@ all_ext = ext_c + ext_pas + ext_java + ext_py3 + ext_py2
 compile_ext = ext_c + ext_pas + ext_java
 script_ext = ext_py3 + ext_py2
 
-class Program:
+class Program: # {{{
     def compare_mask(self):
         return (0, self.name)
 
     def __lt__(self, other):
         return self.compare_mask() < other.compare_mask()
 
-    def transform(self): #{{{
+    def transform(self): 
         name = self.name
         self.compilecmd = None
         self.source = None
@@ -115,7 +115,6 @@ class Program:
                 self.runcmd = 'python2 ' + self.source
             if self.ext in ext_java:
                 self.runcmd = 'java ' + self.runcmd
-    #}}}
 
     def prepare(self):
         if self.compilecmd != None:
@@ -153,8 +152,9 @@ class Program:
 
         # compute runcmd, compilecmd and filestoclear
         self.transform()
+#}}}
 
-class Solution(Program):
+class Solution(Program): #{{{
     cmd_maxlen = len('Solution')
 
     def updated_status(original, new):
@@ -196,7 +196,6 @@ class Solution(Program):
             '|-%s-|----------|-----------|--------|--------|' % ('-'*len(sol))
         )+resetcolor()
 
-
     def get_statistics(self):
         points, maxpoints = 0, 0
         for key in self.statistics['batchresults']:
@@ -220,7 +219,6 @@ class Solution(Program):
         line = line.replace('|>|', color)
 
         return line
-        
 
     def record(self, ifile, status, time):
         input = ifile.rsplit('/', 1)[1].rsplit('.', 1)[0]
@@ -291,12 +289,14 @@ class Solution(Program):
         
         if status == 'INT':
             error('Internal error. Testing will not continue', doquit=True)
+#}}}
 
-class Validator(Program):
+class Validator(Program): #{{{
     def compare_mask(self):
         return (-2, self.name)
+#}}}
 
-class Checker(Program):
+class Checker(Program): #{{{
     def compare_mask(self):
         return (-3, self.name)
     
@@ -324,10 +324,18 @@ class Checker(Program):
         return subprocess.call(
             self.diff_cmd(ifile, ofile, tfile),
             shell=True, stderr=se) 
+#}}}
 
-class Generator(Program):
+class Generator(Program): #{{{
     def compare_mask(self):
         return (-4, self.name)
+
+    def generate(self, ifile, text):
+        pass
+        
+#}}}
+         
+        
     
 '''
 # compile the wrapper if turned on
@@ -342,5 +350,4 @@ if args.wrapper != False:
     if os.system('gcc -O2 -o %s %s' % (wrapper_binary, wrapper_source)):
         error('Wrapper compile failed.')
         quit(1)
-
 '''

@@ -64,12 +64,16 @@ class Parser:
             help:'dont remove temporary files after finishing'}),
         'clearbin' : (('-K', '--keep-bin'), {dest:'clearbin', action:'store_false',
             help:'dont remove binary files after finishing'}),
+        'clearinput' : (('-k', '--keep-inputs'), {dest:'clearinput', action:'store_false',
+            help:'dont remove old input files. Samples are never removed'}),
         
         # what to do
         'programs' : (('programs',), {nargs:'+',
             help:'list of programs to be run'}),
         'description' : (('description',), {nargs:'?',
-            help:'recipe for inputs. If not provided, read it from stdin'}),
+            help:'recipe for inputs. If not provided, read it from stdin.'}),
+        'gencmd' : (('-g', '--gen'), {dest:'gencmd', default:'gen', 
+            help:'generator used for generating inputs (default=gen)'}),
     }
 
 
