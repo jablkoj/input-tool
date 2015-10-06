@@ -13,6 +13,10 @@ Naming conventions -- Type of file is determined by prefix.
                    -- Gets arguments with names of files.
   <other>          -- Anything. E.g. you can use arbitrary program as generator, 
                       but dont use sol*, val*, diff*, ...
+  Split parts of names by '-' not '_'. 
+  In solutions, parts can be score, author, algorithm, complexity
+  in this order. E.g. sol-100-jano-n2.cpp, sol-jano.cpp, sol-40.cpp 
+  (if second part is an integer, it is treated as score).
 
 Program types      -- What is recognized and smartly processed.
                       It is determined mainly by extension and number of words.
@@ -25,7 +29,7 @@ Program types      -- What is recognized and smartly processed.
 '''
 
 import sys, os, subprocess
-from common.messages import error, warning, infob, infog, colorize
+from common.messages import *
 
 def isfilenewer(file1, file2):
     if not os.path.exists(file1) or not os.path.exists(file2):
@@ -47,6 +51,11 @@ compile_ext = ext_c + ext_pas + ext_java
 script_ext = ext_py3 + ext_py2
 
 class Program:
+    def compare_mask(self):
+        return (0, self.name)
+
+    def __lt__(self, other):
+        return self.compare_mask() < other.compare_mask()
 
     def transform(self): #{{{
         name = self.name
@@ -146,7 +155,26 @@ class Program:
         self.transform()
 
 class Solution(Program):
-    cmd_maxlen = 0
+    cmd_maxlen = len('Solution')
+
+    def updated_status(original, new):
+        if original == 'OK': return new
+        if new == 'OK': return original
+        if original == 'INT' or new == 'INT':
+            return 'INT'
+        return original
+    
+    def compare_mask(self):
+        filename = self.name.rsplit(' ',1)[-1].rsplit('/',1)[-1].rsplit('.',1)[0]
+        score = 0
+        parts = filename.split('-')
+        if 'vzorak' in parts or 'vzor' in parts:
+            score+=2000
+        if filename.startswith('sol'):
+            if len(filename)==3: score+=1000
+            if len(parts) > 1 and isnumeric(parts[1]):
+                score+=int(parts[1])
+        return (-1, -score, self.name)
     
     def __init__(self, name, args):
         super().__init__(name, args)
@@ -154,8 +182,58 @@ class Solution(Program):
             'maxtime': 0,
             'sumtime': 0,
             'batchresults': {},
+            'overallresult': 'OK',
         }
     
+    def get_statistics_header(inputs):
+        sol = ('{:'+str(Solution.cmd_maxlen)+'s}').format('Solution')
+        batches = set([x.rsplit('.', 2)[0] 
+                      for x in inputs if not 'sample' in x])
+        pts = len(batches)
+
+        return headercolor()+('\n'+
+            '| %s | Max time | Times sum | Pt %3d | Status |\n' % (sol, pts) +
+            '|-%s-|----------|-----------|--------|--------|' % ('-'*len(sol))
+        )+resetcolor()
+
+
+    def get_statistics(self):
+        points, maxpoints = 0, 0
+        for key in self.statistics['batchresults']:
+            if 'sample' in key: continue
+            maxpoints += 1
+            if self.statistics['batchresults'][key] == 'OK':
+                points += 1
+        color = scorecolor(points, maxpoints)
+        hcolor = headercolor()
+
+        runcmd = ('{:'+str(Solution.cmd_maxlen)+'s}').format(self.runcmd)
+        status = self.statistics['overallresult']
+        status = colorize(status, '{:3s}'.format(status), True)
+    
+        line =  '|| %s || %8d || %9d ||    %3d ||   |<|%s|>|  |||<|' % (
+            runcmd, self.statistics['maxtime'], self.statistics['sumtime'],
+            points, status
+        )
+        line = line.replace('||', hcolor+'|'+color)
+        line = line.replace('|<|', resetcolor())
+        line = line.replace('|>|', color)
+
+        return line
+        
+
+    def record(self, ifile, status, time):
+        input = ifile.rsplit('/', 1)[1].rsplit('.', 1)[0]
+        batch = input.rsplit('.', 1)[0]
+        batchresults = self.statistics['batchresults']    
+        batchresults[batch] = Solution.updated_status(
+            batchresults.get(batch, 'OK'),
+            status)
+        self.statistics['maxtime'] = max(self.statistics['maxtime'], int(time*1000))
+        self.statistics['sumtime'] += int(time*1000)
+        self.statistics['overallresult'] = Solution.updated_status(
+            self.statistics['overallresult'],status)
+
     def timecmd(self, timefile, timelimit=0):
         timekill = 'timeout %s' % timelimit if timelimit else ''
         return '/usr/bin/time -f "%s" -o %s -q %s' % ('%U', timefile, timekill)
@@ -171,7 +249,7 @@ class Solution(Program):
             os.getpid(),
         )
         # run solution
-        usertime = ''
+        usertime = -1
         timecmd = self.timecmd(timefile, int(args.timelimit))
         cmd = '%s %s < %s > %s' % (timecmd, self.runcmd, ifile, tfile)
         try:
@@ -197,7 +275,7 @@ class Solution(Program):
                 os.remove(timefile)
 
         # construct summary
-       
+        self.record(ifile, status, usertime)
         runcmd = ('{:<'+str(Solution.cmd_maxlen)+'s}').format(self.runcmd)
         time = '{:6d}'.format(int(usertime*1000))
 
@@ -214,8 +292,14 @@ class Solution(Program):
         if status == 'INT':
             error('Internal error. Testing will not continue', doquit=True)
 
+class Validator(Program):
+    def compare_mask(self):
+        return (-2, self.name)
 
 class Checker(Program):
+    def compare_mask(self):
+        return (-3, self.name)
+    
     def __init__(self, name, args):
         super().__init__(name, args)
         if name=='diff':
@@ -242,7 +326,8 @@ class Checker(Program):
             shell=True, stderr=se) 
 
 class Generator(Program):
-    pass
+    def compare_mask(self):
+        return (-4, self.name)
     
 '''
 # compile the wrapper if turned on

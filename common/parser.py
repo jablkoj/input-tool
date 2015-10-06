@@ -53,6 +53,8 @@ class Parser:
             help:'do let subprograms print stuff'}),
         'Quiet' : (('-Q', '--Quiet'), {dest:'Quiet', action:'store_true',
             help:'do not print anything'}),
+        'stats' : (('-s', '--statistics'), {dest:'stats', action:'store_true',
+            help:'print statistics'}),
         
         # cleanup
         'cleartemp' : (('-k', '--keep-temp'), {dest:'cleartemp', action:'store_false',

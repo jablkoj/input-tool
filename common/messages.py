@@ -21,6 +21,9 @@ while changed:
             __codemap[key] = __codemap[__codemap[key]]
             changed = True
 
+def __testscore(p, m):
+    __sew("%s%s/%s%s\n" % (scorecolor(p,m), p, m, resetcolor()))
+
 def test():
     args = lambda: None
     setattr(args, 'colorful', True)
@@ -31,11 +34,13 @@ def test():
     infog("infog")
     warning("warning")
     error("error", doquit=False)
-    __sow(colorize('OK', 'ok') + colorize('WA', 'wa') + colorize('TLE', 'tle') +
-          colorize('EXC', 'exc') + colorize('INT', 'internal error') + '\n')
-    __sow(colorize('OK', 'ok', True) + colorize('WA', 'wa', True) + 
+    __sew(colorize('OK', 'ok') + colorize('WA', 'wa') + colorize('TLE', 'tle') +
+          colorize('EXC', 'exc') + colorize('INT', 'int') + '\n')
+    __sew(colorize('OK', 'ok', True) + colorize('WA', 'wa', True) + 
                     colorize('TLE', 'tle', True) + colorize('EXC', 'exc', True) +
-                    colorize('INT', 'internal error', True) + '\n')
+                    colorize('INT', 'int', True) + '\n')
+    for i in range(11):
+        __testscore(i, 10)
 
 def messages_setup(args):
     global __good,__fine,__ok,__bad,__terrible,__normal
@@ -85,3 +90,21 @@ def colorize(status, text, emph=None):
         __construct(code=status, bold=emph), 
         text, 
         __normal)
+
+def scorecolor(points, maxpoints):
+    if __normal == '': return ''
+    codes = [196, 208, 226, 228, 46]
+    if points >= maxpoints: code = codes[4]
+    elif 5*points >= maxpoints*4: code = codes[3]
+    elif 2*points >= maxpoints: code = codes[2]
+    elif points > 0: code = codes[1]
+    else: code = codes[0]
+    return '\033[38;5;%dm' % code
+
+def headercolor():
+    if __normal == '': return ''
+    return __construct(color='blue')
+     
+
+def resetcolor():
+    return __normal

@@ -11,30 +11,30 @@ options = [
     'indir', 'outdir', 'inext', 'outext', 'tempext', 'reset',
     'timelimit', 'diffcmd',
     'compile', 'execute',
-    'colorful', 'quiet', 
+    'colorful', 'quiet', 'stats', 
     'cleartemp', 'clearbin', 
     'programs',
 ]
 
 from common.parser import Parser
 from common.commands import Solution, Checker
-from common.messages import messages_setup, error, warning, \
-    info, infob, infog, colorize
+from common.messages import *
 import atexit, os
 
 parser = Parser(description, options)
 args =  parser.parse()
 messages_setup(args)
+test()
 
 # {{{ ----------- prepare programs ---------------- 
 
-programs = []
 solutions = []
 checker = Checker(args.diffcmd, args)
 for p in args.programs:
     solutions.append(Solution(p, args))
+solutions.sort()
+programs = [checker]
 programs += solutions
-programs.append(checker) 
 
 def cleanup():
     if args.clearbin:
@@ -91,8 +91,12 @@ for input in inputs:
 
     for sol in solutions:
         result_file = get_result_file(output_file, temp_file)
-        sol.run(input_file,output_file,result_file,checker,args) 
+        sol.run(input_file,output_file,result_file,checker,args)
 
 # ------------ print sumary ------------------
 
+if args.stats:
+    print(Solution.get_statistics_header(inputs))
+    for s in solutions:
+        print(s.get_statistics())
 
