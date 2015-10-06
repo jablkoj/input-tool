@@ -24,7 +24,6 @@ import atexit, os
 parser = Parser(description, options)
 args =  parser.parse()
 messages_setup(args)
-test()
 
 # {{{ ----------- prepare programs ---------------- 
 

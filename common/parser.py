@@ -33,21 +33,22 @@ class Parser:
             help:'use wrapper, default PATH="$WRAPPER"'}),
         'diffcmd' : (('-d', '--diff'), {dest:'diffcmd', default:'diff',
             help:'program which checks correctness of output. '+
-            'Arguments given to program depends of prefix: \n'+
-            '  diff $our $theirs' +
-            '  check $inp $our $theirs' +
-            '  ch_ito $inp $theirs $our' +
-            '  test $dir $name $i $o $t' +
-            '  (default=diff)'}),
+            'Arguments given to program depends of prefix: '+
+            "       diff $our $theirs," +
+            "       check $inp $our $theirs," +
+            "       ch_ito $inp $theirs $our," +
+            "       test $dir $name $i $o $t," +
+            "       (default=diff)"}),
 
         # running options
         'compile' : (('--no-compile',), {dest:'compile', action:'store_false',
             help:'do not try to compile'}),
         'execute' : (('-x', '--execute'), {dest:'execute', action:'store_true',
-            help:'treat programs as bash commands'}),
+            help:'treat programs as bash commands. Dont try to do something smart '+
+                  'as compiling'}),
 
         # verbosing
-        'colorful' : (('-b', '--boring', '--no-color'), {dest:'colorful', 
+        'colorful' : (('-b', '--boring'), {dest:'colorful', 
             action:'store_false', help:'turn colors off'}),
         'quiet' : (('-q', '--quiet'), {dest:'quiet', action:'store_true',
             help:'do let subprograms print stuff'}),

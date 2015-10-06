@@ -118,9 +118,9 @@ class Program:
     #}}}
 
     def prepare(self):
-        so = subprocess.PIPE if self.quiet else None
-        se = subprocess.STDOUT if self.quiet else None
         if self.compilecmd != None:
+            so = subprocess.PIPE if self.quiet else None
+            se = subprocess.STDOUT if self.quiet else None
             infob('Compiling: %s' % self.compilecmd)
             try:
                 subprocess.check_call(self.compilecmd, shell=True, 
