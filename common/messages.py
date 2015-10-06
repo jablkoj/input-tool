@@ -22,16 +22,16 @@ while changed:
             changed = True
 
 def __testscore(p, m):
-    __sew("%s%s/%s%s\n" % (scorecolor(p,m), p, m, resetcolor()))
+    __sew("%s%2s/%2s%s\n" % (scorecolor(p,m), p, m, resetcolor()))
 
-def test():
+def color_test():
     args = lambda: None
     setattr(args, 'colorful', True)
     messages_setup(args)
 
-    info("message")
-    infob("infob")
-    infog("infog")
+    info("white")
+    infob("blue")
+    infog("green")
     warning("warning")
     error("error", doquit=False)
     __sew(colorize('OK', 'ok') + colorize('WA', 'wa') + colorize('TLE', 'tle') +

@@ -11,7 +11,7 @@ options = [
     'indir', 'outdir', 'inext', 'outext', 'tempext', 'reset',
     'timelimit', 'diffcmd',
     'compile', 'execute',
-    'colorful', 'quiet', 'stats', 
+    'colorful', 'colortest', 'quiet', 'stats', 
     'cleartemp', 'clearbin', 
     'programs',
 ]
@@ -23,6 +23,10 @@ import atexit, os
 
 parser = Parser(description, options)
 args =  parser.parse()
+if args.colortest:
+    color_test()
+    quit(0)
+    
 messages_setup(args)
 
 # {{{ ----------- prepare programs ---------------- 

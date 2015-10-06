@@ -50,6 +50,8 @@ class Parser:
         # verbosing
         'colorful' : (('-b', '--boring'), {dest:'colorful', 
             action:'store_false', help:'turn colors off'}),
+        'colortest' : (('--colortest',), {dest:'colortest', action:'store_true', 
+            help:'test colors and exit'}),
         'quiet' : (('-q', '--quiet'), {dest:'quiet', action:'store_true',
             help:'do let subprograms print stuff'}),
         'Quiet' : (('-Q', '--Quiet'), {dest:'Quiet', action:'store_true',
