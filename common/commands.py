@@ -172,7 +172,7 @@ class Solution(Program):
             score+=2000
         if filename.startswith('sol'):
             if len(filename)==3: score+=1000
-            if len(parts) > 1 and isnumeric(parts[1]):
+            if len(parts) > 1 and parts[1].isnumeric():
                 score+=int(parts[1])
         return (-1, -score, self.name)
     
