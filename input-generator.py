@@ -38,7 +38,6 @@ programs = recipe.programs
 generator = Generator(args.gencmd, args)
 programs = [generator]
 
-
 def cleanup():
     if args.clearbin:
         for p in programs:

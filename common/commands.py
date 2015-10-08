@@ -1,6 +1,7 @@
 # (c) 2014 jano <janoh@ksp.sk>
 '''
-Basic behaviour you need to understand if you want to use this
+Basic behaviour you need to understand if you want to use this.
+Don't use spaces in file names.
 
 Naming conventions -- Type of file is determined by prefix.
   gen - generator  -- Gets one line on stdin, prints input on stdout.
@@ -23,8 +24,8 @@ Program types      -- What is recognized and smartly processed.
   multiple words   -- Run as it is.
   noextension      -- Check if binary should be compiled and maybe compile.
                       Then run ./noextension if file exists and noextension otherwise.
-  program.ext      -- If c/cc/c++/pas/java, compile and run binary.
-  program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
+program.ext      -- If c/cc/c++/pas/java, compile and run binary.
+program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
 
 '''
 
@@ -98,8 +99,8 @@ class Program:  # {{{
             self.cancompile and
             (self.ext in compile_ext) and
             (self.source == name or
-             not os.path.exists(self.runcmd) or
-             isfilenewer(self.source, self.runcmd))
+            not os.path.exists(self.runcmd) or
+            isfilenewer(self.source, self.runcmd))
         )
         if docompile:
             if self.ext in ext_c:
@@ -129,7 +130,7 @@ class Program:  # {{{
             infob('Compiling: %s' % self.compilecmd)
             try:
                 subprocess.check_call(self.compilecmd, shell=True,
-                                      stdout=so, stderr=se)
+                                    stdout=so, stderr=se)
             except:
                 error('Compilation failed.')
 
@@ -199,14 +200,13 @@ class Solution(Program):  # {{{
     def get_statistics_header(inputs):
         sol = ('{:' + str(Solution.cmd_maxlen) + 's}').format('Solution')
         batches = set([x.rsplit('.', 2)[0]
-                      for x in inputs if not 'sample' in x])
+                    for x in inputs if not 'sample' in x])
         pts = len(batches)
 
         return headercolor() + ('\n' +
-                                '| %s | Max time | Times sum | Pt %3d | Status |\n' % (sol, pts) +
-                                '|-%s-|----------|-----------|--------|--------|' % (
-                                    '-' * len(sol))
-                                ) + resetcolor()
+            '| %s | Max time | Times sum | Pt %3d | Status |\n' % (sol, pts) +
+            '|-%s-|----------|-----------|--------|--------|' % ('-' * len(sol))
+            ) + resetcolor()
 
     def get_statistics(self):
         points, maxpoints = 0, 0
@@ -277,11 +277,8 @@ class Solution(Program):  # {{{
                 status = 'INT'
 
             if status == 'OK':
-                checkres = checker.check(ifile, ofile, tfile)
-                if checkres != 0:
+                if checker.check(ifile, ofile, tfile):
                     status = 'WA'
-                    if checkres != 1:
-                        warning('Checker exited with status %s' % checkres)
         except Exception as e:
             result = -1
             status = 'INT'
@@ -343,9 +340,12 @@ class Checker(Program):  # {{{
 
     def check(self, ifile, ofile, tfile):
         se = subprocess.PIPE if self.quiet else None
-        return subprocess.call(
+        result = subprocess.call(
             self.diff_cmd(ifile, ofile, tfile),
             shell=True, stderr=se)
+        if not result in (0,1):
+            warning('Checker exited with status %s' % checkres)
+        return result
 #}}}
 
 
@@ -355,7 +355,9 @@ class Generator(Program):  # {{{
         return (-4, self.name)
 
     def generate(self, ifile, text):
-        pass
+        cmd = "%s > %s" % (self.runcmd, ifile)
+        p = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
+        p.communicate(str.encode(text))
 
 #}}}
 
