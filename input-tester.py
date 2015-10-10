@@ -28,7 +28,7 @@ if args.colortest:
     color_test()
     quit(0)
 
-messages_setup(args)
+Color.setup(args)
 
 # {{{ ------------ prepare programs ------------------
 solutions = []
@@ -43,7 +43,7 @@ programs += solutions
 def cleanup():
     if args.clearbin:
         for p in programs:
-            p.clearfiles()
+            p.clear_files()
 atexit.register(cleanup)
 
 for p in programs:

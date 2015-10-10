@@ -24,7 +24,7 @@ import sys
 
 parser = Parser(description, options)
 args = parser.parse()
-messages_setup(args)
+Color.setup(args)
 
 if args.description:
     recipe = Recipe(open(args.description, 'r'))
@@ -41,7 +41,7 @@ programs = [generator]
 def cleanup():
     if args.clearbin:
         for p in programs:
-            p.clearfiles()
+            p.clear_files()
 atexit.register(cleanup)
 
 for p in programs:

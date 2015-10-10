@@ -35,13 +35,13 @@ import subprocess
 from common.messages import *
 
 
-def isfilenewer(file1, file2):
+def is_file_newer(file1, file2):
     if not os.path.exists(file1) or not os.path.exists(file2):
         return None
     return os.path.getctime(file1) > os.path.getctime(file2)
 
 
-def tobasealnum(s):
+def to_base_alnum(s):
     s = s.split('/')[-1]
     return ''.join([x for x in s if str.isalnum(x)])
 
@@ -64,7 +64,7 @@ class Program:  # {{{
     def __lt__(self, other):
         return self.compare_mask() < other.compare_mask()
 
-    def transform(self):
+    def _transform(self):
         name = self.name
         self.compilecmd = None
         self.source = None
@@ -100,7 +100,7 @@ class Program:  # {{{
             (self.ext in compile_ext) and
             (self.source == name or
             not os.path.exists(self.runcmd) or
-            isfilenewer(self.source, self.runcmd))
+            is_file_newer(self.source, self.runcmd))
         )
         if docompile:
             if self.ext in ext_c:
@@ -143,7 +143,7 @@ class Program:  # {{{
             Solution.cmd_maxlen = max(Solution.cmd_maxlen, len(self.runcmd))
         self.ready = True
 
-    def clearfiles(self):
+    def clear_files(self):
         for f in self.filestoclear:
             if os.path.exists(f):
                 os.remove(f)
@@ -158,7 +158,7 @@ class Program:  # {{{
         self.ready = False
 
         # compute runcmd, compilecmd and filestoclear
-        self.transform()
+        self._transform()
 #}}}
 
 
@@ -166,12 +166,12 @@ class Solution(Program):  # {{{
     cmd_maxlen = len('Solution')
 
     def updated_status(original, new):
-        if original == 'OK':
+        if original == Status.ok:
             return new
-        if new == 'OK':
+        if new == Status.ok:
             return original
-        if original == 'INT' or new == 'INT':
-            return 'INT'
+        if original == Status.err or new == Status.err:
+            return Status.err
         return original
 
     def compare_mask(self):
@@ -194,19 +194,15 @@ class Solution(Program):  # {{{
             'maxtime': 0,
             'sumtime': 0,
             'batchresults': {},
-            'overallresult': 'OK',
+            'result': Status.ok,
         }
 
     def get_statistics_header(inputs):
-        sol = ('{:' + str(Solution.cmd_maxlen) + 's}').format('Solution')
-        batches = set([x.rsplit('.', 2)[0]
-                    for x in inputs if not 'sample' in x])
+        batches = set([x.rsplit('.', 2)[0] for x in inputs if not 'sample' in x])
         pts = len(batches)
-
-        return headercolor() + ('\n' +
-            '| %s | Max time | Times sum | Pt %3d | Status |\n' % (sol, pts) +
-            '|-%s-|----------|-----------|--------|--------|' % ('-' * len(sol))
-            ) + resetcolor()
+        widths = [Solution.cmd_maxlen, 8, 9, 6, 6]
+        colnames = ['Solution', 'Max time', 'Times sum', 'Pt %3d' % pts, 'Status']
+        return table_header(colnames, widths, [-1,1,1,1,0])
 
     def get_statistics(self):
         points, maxpoints = 0, 0
@@ -214,37 +210,27 @@ class Solution(Program):  # {{{
             if 'sample' in key:
                 continue
             maxpoints += 1
-            if self.statistics['batchresults'][key] == 'OK':
+            if self.statistics['batchresults'][key] == Status.ok:
                 points += 1
-        color = scorecolor(points, maxpoints)
-        hcolor = headercolor()
+        color = Color.score_color(points, maxpoints)
+        widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
+        colnames = [self.runcmd, self.statistics['maxtime'], self.statistics['sumtime'],
+                    points, self.statistics['result']]
 
-        runcmd = ('{:' + str(Solution.cmd_maxlen) + 's}').format(self.runcmd)
-        status = self.statistics['overallresult']
-        status = colorize(status, '{:3s}'.format(status), True)
-
-        line = '|| %s || %8d || %9d ||    %3d ||   |<|%s|>|  |||<|' % (
-            runcmd, self.statistics['maxtime'], self.statistics['sumtime'],
-            points, status
-        )
-        line = line.replace('||', hcolor + '|' + color)
-        line = line.replace('|<|', resetcolor())
-        line = line.replace('|>|', color)
-
-        return line
+        return table_row(color, colnames, widths, [-1,1,1,1,0])
 
     def record(self, ifile, status, time):
         input = ifile.rsplit('/', 1)[1].rsplit('.', 1)[0]
         batch = input.rsplit('.', 1)[0]
         batchresults = self.statistics['batchresults']
         batchresults[batch] = Solution.updated_status(
-            batchresults.get(batch, 'OK'),
+            batchresults.get(batch, Status.ok),
             status)
         self.statistics['maxtime'] = max(
             self.statistics['maxtime'], int(time * 1000))
         self.statistics['sumtime'] += int(time * 1000)
-        self.statistics['overallresult'] = Solution.updated_status(
-            self.statistics['overallresult'], status)
+        self.statistics['result'] = Solution.updated_status(
+            self.statistics['result'], status)
 
     def timecmd(self, timefile, timelimit=0):
         timekill = 'timeout %s' % timelimit if timelimit else ''
@@ -256,8 +242,8 @@ class Solution(Program):  # {{{
         so = subprocess.PIPE if self.quiet else None
         se = subprocess.PIPE if self.quiet else None
         timefile = '.temptime-%s-%s-%s' % (
-            tobasealnum(self.name),
-            tobasealnum(ifile),
+            to_base_alnum(self.name),
+            to_base_alnum(ifile),
             os.getpid(),
         )
         # run solution
@@ -268,20 +254,20 @@ class Solution(Program):  # {{{
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
             usertime = float(open(timefile, 'r').read().strip())
             if result == 0:
-                status = 'OK'
+                status = Status.ok
             elif result == 124:
-                status = 'TLE'
+                status = Status.tle
             elif result > 0:
-                status = 'EXC'
+                status = Status.exc
             else:
-                status = 'INT'
+                status = Status.err
 
-            if status == 'OK':
+            if status == Status.ok:
                 if checker.check(ifile, ofile, tfile):
-                    status = 'WA'
+                    status = Status.wa
         except Exception as e:
             result = -1
-            status = 'INT'
+            status = Status.err
             warning(str(e))
         finally:
             if os.path.exists(timefile):
@@ -299,10 +285,9 @@ class Solution(Program):  # {{{
         else:
             summary = '    %s  %sms.' % (runcmd, time)
 
-        okwastatus = 'OK' if status == 'OK' else 'WA'
-        print(colorize(okwastatus, summary), colorize(status, status, True))
+        print(Color.colorize(status, summary), status.colored())
 
-        if status == 'INT':
+        if status == Status.err:
             error('Internal error. Testing will not continue', doquit=True)
 #}}}
 
@@ -334,7 +319,7 @@ class Checker(Program):  # {{{
             'test': ' %s %s %s %s %s' % ('./', './', ifile, ofile, tfile),
         }
         for key in diff_map:
-            if tobasealnum(self.name).startswith(key):
+            if to_base_alnum(self.name).startswith(key):
                 return self.runcmd + diff_map[key]
         return None
 

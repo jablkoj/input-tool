@@ -34,26 +34,24 @@ Format of description files:
 '''
 from random import randint
 
+def _int_log(number, base):
+    result = 1
+    while number >= base:
+        number //= base
+        result += 1
+    return result
+
+def _create_name(number, base, length):
+    result = ''
+    start = ord('0') if base == 10 else ord('a')
+    for i in range(length):
+        result = chr(start + number % base) + result
+        number //= base
+    return result
 
 class Input:
     maxbatch = 1
     maxid = 1
-
-    def intlog(number, base):
-        result = 1
-        while number >= base:
-            number //= base
-            result += 1
-        return result
-
-    def createname(number, base, length):
-        result = ''
-        start = ord('0') if base == 10 else ord('a')
-        for i in range(length):
-            result = chr(start + number % base) + result
-            number //= base
-        return result
-
     MAXINT = 2 ** 31
 
     def __lt__(self, other):
@@ -72,7 +70,7 @@ class Input:
         Input.maxid = max(Input.maxid, subid)
         self.compiled = False
 
-    def __apply_commands(self):
+    def _apply_commands(self):
         if not self.effects:
             return
         v = self.commands.get('batch', None)
@@ -85,7 +83,7 @@ class Input:
         if v:
             self.name = v + self.name
 
-    def __format(self):
+    def _apply_format(self):
         if not self.effects:
             return
         self.text = self.text.format(**{
@@ -100,13 +98,13 @@ class Input:
             return
         self.compiled = True
         if isinstance(self.batch, int):
-            self.batch = Input.createname(self.batch, 10,
-                                          Input.intlog(Input.maxbatch, 10))
+            self.batch = _create_name(self.batch, 10,
+                                          _int_log(Input.maxbatch, 10))
         if isinstance(self.name, int):
-            self.name = Input.createname(self.name, 26,
-                                         Input.intlog(Input.maxid, 26))
-        self.__apply_commands()
-        self.__format()
+            self.name = _create_name(self.name, 26,
+                                         _int_log(Input.maxid, 26))
+        self._apply_commands()
+        self._apply_format()
 
     def get_name(self, path='', ext=''):
         return '%s%s.%s.%s' % (path, self.batch, self.name, ext)
@@ -122,7 +120,7 @@ class Recipe:
         self.programs = []
         self.inputs = []
 
-    def parse_commands(self, line):
+    def _parse_commands(self, line):
         commands = {}
         parts = line.split()
         for part in parts:
@@ -131,7 +129,7 @@ class Recipe:
                 commands[k] = v
         return commands
 
-    def parse_recipe(self):
+    def _parse_recipe(self):
         continuingline = False
         all_commands, batch_commands, line_commands = {}, {}, {}
         batchid, subid, inputid = 1, 0, 1
@@ -161,13 +159,13 @@ class Recipe:
                 continue
 
             if line.startswith('@'):
-                all_commands = self.parse_commands(line[1:])
+                all_commands = self._parse_commands(line[1:])
                 continue
             if line.startswith('$'):
-                batch_commands = self.parse_commands(line[1:])
+                batch_commands = self._parse_commands(line[1:])
                 continue
             if line.startswith('!'):
-                line_commands = self.parse_commands(line[1:])
+                line_commands = self._parse_commands(line[1:])
                 continue
 
             self.inputs.append(Input(line, batchid, subid, inputid))
@@ -179,6 +177,6 @@ class Recipe:
             line_commands = {}
 
     def process(self):
-        self.parse_recipe()
+        self._parse_recipe()
         for input in self.inputs:
             input.compile()
