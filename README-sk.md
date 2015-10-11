@@ -22,6 +22,7 @@ Ešte nie je prekódené.
 3. Spustíte input-generátor a tešíte sa.
 
 ### Generátor
+Generátor sa bežne volá `gen`. Ak sa volá inač, treba to povedať testeru pomocou prepínača `-g`.
 To je program, ktorý berie na vstupe jeden riadok (kde dáte čo chcete, napríklad dve čísla, maximálne $n$ a $m$.)
 Tento program vypíše, normálne na stdout, jeden vstup úlohy. Dávajte si pozor, aby bol vypísaný vstup korektný,
 žiadne medzery na koncoch riadkov, dodržujte limity, čo slubujete v zadaní. 
@@ -59,11 +60,12 @@ IDF dokáže robiť veľa cool vecí navyše, ale tie ešte nie sú zdokumentova
 
 ```
 $  input-generator idf
-$  input-generator -i . -I input -g gen.cpp -qK < idf
+$  input-generator -i . -I input -g gen-special.cpp -qK < idf
 #  You can use help to understand the previous line.
 $  input-generator -h 
 ```
 
+Ináč keď commitujete vstupy, nezabudnite comitnúť aj generátor a IDF.
 **Pozor** si treba dávať na to, že input-generátor, ak mu nepovieme ináč, 
 zmaže všetky staré vstupy, okrem samplov.
 
