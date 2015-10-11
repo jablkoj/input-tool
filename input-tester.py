@@ -10,7 +10,7 @@ By default, automatically decide, how to compile and run solution.
 options = [
     'indir', 'outdir', 'inext', 'outext', 'tempext', 'reset',
     'timelimit', 'diffcmd',
-    'compile', 'execute',
+    'compile', 'execute', 'sort',
     'colorful', 'colortest', 'quiet', 'stats',
     'cleartemp', 'clearbin',
     'programs',
@@ -35,7 +35,8 @@ solutions = []
 checker = Checker(args.diffcmd, args)
 for p in args.programs:
     solutions.append(Solution(p, args))
-solutions.sort()
+if args.sort:
+    solutions.sort()
 programs = [checker]
 programs += solutions
 
@@ -103,6 +104,9 @@ for input in inputs:
     for sol in solutions:
         result_file = get_result_file(output_file, temp_file)
         sol.run(input_file, output_file, result_file, checker, args)
+        if (args.cleartemp and output_file != result_file and
+            os.path.exists(result_file)):
+            os.remove(result_file)
 
 # ------------ print sumary ------------------
 

@@ -43,6 +43,8 @@ class Parser:
         # running options
         'compile' : (('--no-compile',), {dest:'compile', action:'store_false',
             help:'do not try to compile'}),
+        'sort' : (('--no-sort',), {dest:'sort', action:'store_false',
+            help:'do not change order of programs'}),
         'execute' : (('-x', '--execute'), {dest:'execute', action:'store_true',
             help:'treat programs as bash commands. Dont try to do something smart '+
                   'as compiling'}),
