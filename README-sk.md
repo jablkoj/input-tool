@@ -18,7 +18,7 @@ Ešte nie je prekódené.
 
 1. Najskôr treba nakódiť **generátor**, ktorý nazvite `gen`, teda napr. `gen.cpp` alebo `gen.py`. 
 (Ako generátor môžete teoreticky použiť hociaký príkaz, celkom užitočný je `cat`.)
-2. Následne vytvoríte IDF, vysvetlené nižšie
+2. Následne vytvoríte **IDF**, vysvetlené nižšie
 3. Spustíte input-generátor a tešíte sa.
 
 ## Generátor
@@ -68,3 +68,46 @@ $  input-generator -h
 zmaže všetky staré vstupy, okrem samplov.
 
 # input-tester
+
+Cieľom tohto skriptu je otestovať všetky riešenia na vstupoch, overiť, 
+či dávajú správne výstupy, zmerať čas behu a podobne. **Pozor**, slúži to len na domáce testovanie, 
+netestujte tým nejaké reálne kontesty, kde môžu užívatelia submitovať čo chcú. Nemá to totiž žiaden sandbox ani žiadnu ochranu pred neprajníkmi.
+
+Používa sa to veľmi jednoducho. Iba spustíte `input-tester <riešenie/viacriešení>` a ono to porobí všetko samé.
+Oplatí sa však vedieť nasledovné. 
+
+## Help
+```
+input-generator -h
+```
+
+## Pregenerovanie
+Ak ešte neexistuje vzorový výstup ku nejakému vstupu, použije sa prvý program na jeho vygenerovanie. 
+Ostatné programy porovnávajú svoje výstupy s týmto.
+
+Dôležité je, aby program, ktorý generuje výstupy zbehol na všetkých vstupoch správne. Pokial by sa niekde zrúbal/vyTLEl, tak môžu byť výstupy pošahané. 
+
+Už existujú výstupy ale sú zlé? `-R` prepíše výstupy nanovo tým, čo vyrobí program. Tento prepínač funguje podobne, ako `-T out`. Pri týchto monžostiach odporúčame púšťať len jeden program naraz, pretože každý ďalší pregeneruje vstupy znova. Ale nemôžete sa na to spoliehať. Navyše každý program si bude myslieť, že má správne výstupy, aj keby nemal.
+
+## Riešenie
+Prefix riešenia by mal byť "sol". Nie je to nutnosť, ale pomáha to niektorým veciam. Teda nie `vzorak.cpp` ale `sol-vzorak.cpp` pripadne `sol-100-zametanie.cpp`.
+
+Tieto skripty sú pomerne inteligentné, takže
+* Automaticky sa pokúsia zistiť, aký program ste chceli spustiť a občas aj skompiluje, čo treba skompilovať. Ak napríklad zadáte `sol-bf` pokúsi sa nájsť, či tam nie je nejaké `sol-bf.py`, `sol-bf.cpp`.. a pokúsi sa doplniť.
+Rozonávané prípony sú `.c`, `.cc` = `.cpp`, `.pas`, `.java`, `.py` = `.py3`, `.py2`. Tiež sa pokúsi určiť ako ste program chceli spustiť, či `./sol.py` alebo `python3 sol.py`. Samozrejme, hádanie nie je dokonalé ale zatiaľ mám skústenosti, že funguje dosť dobre. Fičúry sa dajú vypnúť pomocou `no-compile` (kompilácia), `-x` (celé automatické rozoznávanie).
+* Pokúsi sa (magicky) utriediť riešenia od najlepšieho po najhoršie. Poradie má zmysel napríklad, keď sa generujú nové výstupy. Triedenie sa dá vypnúť `--no-sort`.
+
+## Časový limit
+Často budete kódiť aj bruteforcy, ktoré by bežali pol hodiny a vám sa nechce čakať. Jednoducho použite prepínač 
+`-t <limit-v-sekundach>`. 
+
+## Checker
+Správnosť výstupu sa nehodnotí tak, že ho len porovnáme s vzorovým? Treba checker? Nie je problém.
+Použite `-d check`, kde check je program, ktorý berie tri argumenty -- vstup, náš výstup, riešiteľov výstup.
+(Viac detailov a možností nájdete v helpe).
+
+## Zobrazovanie
+Peknú tabuľku so zhrnutím zobrazíte pomocou `-s`
+Bežne sa výsledky zobrazujú farebne, dá sa to aj vypnúť. Tiež pokiaľ vás otravujú veci, čo vypisujú kompilátory a programy na stderr a podobne, dá sa to schovať pomocou '-q'.
+
+
