@@ -55,7 +55,7 @@ Vyrobí postupne vstupy `1.a.in`, `1.b.in`, `1.c.in`, `2.a.in`, `2.b.in`.
 
 IDF dokáže robiť veľa cool vecí navyše, ale tie ešte nie sú zdokumentované/otestované/naimplementované. 
 
-## Súšťanie
+### Spúšťanie
 
 ```
 $  input-generator idf
