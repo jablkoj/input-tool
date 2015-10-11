@@ -2,7 +2,7 @@
 Nástroj, ktorý výrazne zjednodušuje vytváranie a testovanie vstupov pre súťažné programátorské príklady. 
 Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-tester**
 
-# Inštalácia
+### Inštalácia
 Na **Linuxe** je to dosť jednoduché. Inde to ani nefunguje :)
 
 1. Stiahnite si zdrojáky -- `git clone git@github.com:jablkoj/input-tool.git`. Tento nástroj sa stále vyvíja, takže je fajn
@@ -21,7 +21,7 @@ Ešte nie je prekódené.
 2. Následne vytvoríte **IDF**, vysvetlené nižšie
 3. Spustíte input-generátor a tešíte sa.
 
-## Generátor
+### Generátor
 To je program, ktorý berie na vstupe jeden riadok (kde dáte čo chcete, napríklad dve čísla, maximálne $n$ a $m$.)
 Tento program vypíše, normálne na stdout, jeden vstup úlohy. Dávajte si pozor, aby bol vypísaný vstup korektný,
 žiadne medzery na koncoch riadkov, dodržujte limity, čo slubujete v zadaní. 
@@ -32,7 +32,7 @@ podľa ktorého sa rozhodne, čo vygeneruje.
 
 O zvyšné veci by sa mal postarať input-generator.
 
-## IDF
+### IDF
 IDF -- input description file -- je súbor, ktorý popisuje, ako vyzerajú sady a vstupy. 
 Jeden riadok IDF slúži na vyrobenie jedného vstupu (až na špeciálne riadky). 
 Každý takýto riadok poslúži ako vstup pre generátor a to, čo generátor vypľuje sa uloží do správneho súboru,
@@ -76,12 +76,12 @@ netestujte tým nejaké reálne kontesty, kde môžu užívatelia submitovať č
 Používa sa to veľmi jednoducho. Iba spustíte `input-tester <riešenie/viacriešení>` a ono to porobí všetko samé.
 Oplatí sa však vedieť nasledovné. 
 
-## Help
+### Help
 ```
 input-generator -h
 ```
 
-## Pregenerovanie
+### Pregenerovanie
 Ak ešte neexistuje vzorový výstup ku nejakému vstupu, použije sa prvý program na jeho vygenerovanie. 
 Ostatné programy porovnávajú svoje výstupy s týmto.
 
@@ -89,7 +89,7 @@ Dôležité je, aby program, ktorý generuje výstupy zbehol na všetkých vstup
 
 Už existujú výstupy ale sú zlé? `-R` prepíše výstupy nanovo tým, čo vyrobí program. Tento prepínač funguje podobne, ako `-T out`. Pri týchto monžostiach odporúčame púšťať len jeden program naraz, pretože každý ďalší pregeneruje vstupy znova. Ale nemôžete sa na to spoliehať. Navyše každý program si bude myslieť, že má správne výstupy, aj keby nemal.
 
-## Riešenie
+### Riešenie
 Prefix riešenia by mal byť "sol". Nie je to nutnosť, ale pomáha to niektorým veciam. Teda nie `vzorak.cpp` ale `sol-vzorak.cpp` pripadne `sol-100-zametanie.cpp`.
 
 Tieto skripty sú pomerne inteligentné, takže
@@ -97,17 +97,24 @@ Tieto skripty sú pomerne inteligentné, takže
 Rozonávané prípony sú `.c`, `.cc` = `.cpp`, `.pas`, `.java`, `.py` = `.py3`, `.py2`. Tiež sa pokúsi určiť ako ste program chceli spustiť, či `./sol.py` alebo `python3 sol.py`. Samozrejme, hádanie nie je dokonalé ale zatiaľ mám skústenosti, že funguje dosť dobre. Fičúry sa dajú vypnúť pomocou `no-compile` (kompilácia), `-x` (celé automatické rozoznávanie).
 * Pokúsi sa (magicky) utriediť riešenia od najlepšieho po najhoršie. Poradie má zmysel napríklad, keď sa generujú nové výstupy. Triedenie sa dá vypnúť `--no-sort`.
 
-## Časový limit
+### Časový limit
 Často budete kódiť aj bruteforcy, ktoré by bežali pol hodiny a vám sa nechce čakať. Jednoducho použite prepínač 
 `-t <limit-v-sekundach>`. 
 
-## Checker
+### Checker
 Správnosť výstupu sa nehodnotí tak, že ho len porovnáme s vzorovým? Treba checker? Nie je problém.
 Použite `-d check`, kde check je program, ktorý berie tri argumenty -- vstup, náš výstup, riešiteľov výstup.
 (Viac detailov a možností nájdete v helpe).
 
-## Zobrazovanie
+### Zobrazovanie
 Peknú tabuľku so zhrnutím zobrazíte pomocou `-s`
 Bežne sa výsledky zobrazujú farebne, dá sa to aj vypnúť. Tiež pokiaľ vás otravujú veci, čo vypisujú kompilátory a programy na stderr a podobne, dá sa to schovať pomocou '-q'.
 
+### Príklady
 
+```
+input-tester sol-vzorak
+input-tester -t 10 -sq sol-* 
+input-tester -R -d checker.py sol-vzorak.py
+input-tester -h
+```
