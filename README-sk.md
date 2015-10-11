@@ -58,6 +58,8 @@ IDF dokáže robiť veľa cool vecí navyše, ale tie ešte nie sú zdokumentova
 
 ### Spúšťanie
 
+Ináč keď commitujete vstupy, nezabudnite comitnúť aj generátor a IDF.
+
 ```
 $  input-generator idf
 $  input-generator -i . -I input -g gen-special.cpp -qK < idf
@@ -65,7 +67,6 @@ $  input-generator -i . -I input -g gen-special.cpp -qK < idf
 $  input-generator -h 
 ```
 
-Ináč keď commitujete vstupy, nezabudnite comitnúť aj generátor a IDF.
 **Pozor** si treba dávať na to, že input-generátor, ak mu nepovieme ináč, 
 zmaže všetky staré vstupy, okrem samplov.
 
