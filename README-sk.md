@@ -10,7 +10,8 @@ raz za čas stiahnuť najnovšiu verziu. Stačí napísať `git pull` a všetko 
 2. Spustite `./install.sh`. Tento príkaz vytvorí symlinky vo vnútri vášho  `/usr/local/bin`. 
 Potrebuje na to rootovské práva, takže zadajte heslo, keď sa to spýta. Tento príkaz stačí spraviť raz,
 **netreba** ho opakovať po update zdrojákov. To je čaro symlinkov.
-2. (Alternatíva) Ak nemáte rootovské práva alebo si skripty nechcete inštalovať, môžete si napríklad spraviť symlinky v domovskom priečinku a spúšťať `~/nazov-odkazu`. Alebo si môžete pridať aliasy do `.bashrc` alebo hocičo podobné.
+
+(Alternatívne) Ak nemáte rootovské práva alebo si skripty nechcete inštalovať, môžete si napríklad spraviť symlinky v domovskom priečinku a spúšťať `~/nazov-odkazu`. Alebo si môžete pridať aliasy do `.bashrc` alebo hocičo podobné.
 
 # input-sample
 Ešte nie je prekódené.
