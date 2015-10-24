@@ -252,7 +252,6 @@ class Solution(Program):  # {{{
         cmd = '%s %s < %s > %s' % (timecmd, self.runcmd, ifile, tfile)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
-            usertime = float(open(timefile, 'r').read().strip())
             if result == 0:
                 status = Status.ok
             elif result == 124:
@@ -262,6 +261,12 @@ class Solution(Program):  # {{{
             else:
                 status = Status.err
 
+            try:
+                usertime = float(open(timefile, 'r').read().strip())
+            except:
+                usertime = -0.001
+                if status == Status.ok:
+                    status = Status.exc
             if status == Status.ok:
                 if checker.check(ifile, ofile, tfile):
                     status = Status.wa
