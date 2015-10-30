@@ -5,7 +5,8 @@ Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-te
 ### Inštalácia
 Na **Linuxe** je to dosť jednoduché. Inde to ani nefunguje :)
 
-1. Stiahnite si zdrojáky -- `git clone git@github.com:jablkoj/input-tool.git`. Tento nástroj sa stále vyvíja, takže je fajn
+1. Stiahnite si zdrojáky -- `git clone git@github.com:jablkoj/input-tool.git` alebo `git clone https://github.com/jablkoj/input-tool.git`, ak nemáte konto na githube.
+Tento nástroj sa stále vyvíja, takže je fajn
 raz za čas stiahnuť najnovšiu verziu. Stačí napísať `git pull` a všetko sa stiahne samé.
 2. Spustite `./install.sh`. Tento príkaz vytvorí symlinky vo vnútri vášho  `/usr/local/bin`. 
   Potrebuje na to rootovské práva, takže zadajte heslo, keď sa to spýta. Tento príkaz stačí spraviť raz,
