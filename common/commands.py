@@ -221,7 +221,7 @@ class Solution(Program):  # {{{
 
     def record(self, ifile, status, time):
         input = ifile.rsplit('/', 1)[1].rsplit('.', 1)[0]
-        batch = input.rsplit('.', 1)[0]
+        batch = input if input.endswith('sample') else input.rsplit('.', 1)[0]
         batchresults = self.statistics['batchresults']
         batchresults[batch] = Solution.updated_status(
             batchresults.get(batch, Status.ok),
