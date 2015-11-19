@@ -56,9 +56,13 @@ if not os.path.exists(indir):
 filestoclear = os.listdir(indir)
 if len(filestoclear):
     infob("Cleaning directory '%s:'" % indir)
+    # delete only following files
+    exttodel = ['in', 'out', 'temp', args.inext]
     for file in filestoclear:
         if file.endswith(args.inext) and 'sample' in file:
             info("  ommiting file '%s'" % file)
+        elif file.rsplit('.',1)[-1] not in exttodel:
+            info("  not deleting file '%s'" % file)
         else:
             os.remove('%s/%s' % (indir, file))
 
