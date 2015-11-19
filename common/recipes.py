@@ -99,15 +99,20 @@ class Input:
         self.compiled = True
         if isinstance(self.batch, int):
             self.batch = _create_name(self.batch, 10,
-                                          _int_log(Input.maxbatch, 10))
+                                      _int_log(Input.maxbatch, 10))
         if isinstance(self.name, int):
-            self.name = _create_name(self.name, 26,
+            if Input.maxid == 1:
+                self.name = ''
+            else:
+                self.name = _create_name(self.name, 26,
                                          _int_log(Input.maxid, 26))
         self._apply_commands()
         self._apply_format()
+        if self.name:
+            self.name = '.%s' % self.name
 
     def get_name(self, path='', ext=''):
-        return '%s%s.%s.%s' % (path, self.batch, self.name, ext)
+        return '%s%s%s.%s' % (path, self.batch, self.name, ext)
 
     def get_text(self):
         return self.text
