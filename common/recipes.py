@@ -51,7 +51,7 @@ def _create_name(number, base, length):
 
 class Input:
     maxbatch = 1
-    maxid = 1
+    maxid = 0
     MAXINT = 2 ** 31
 
     def __lt__(self, other):
@@ -101,7 +101,7 @@ class Input:
             self.batch = _create_name(self.batch, 10,
                                       _int_log(Input.maxbatch, 10))
         if isinstance(self.name, int):
-            if Input.maxid == 1:
+            if Input.maxid == 0:
                 self.name = ''
             else:
                 self.name = _create_name(self.name, 26,
