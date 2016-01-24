@@ -54,7 +54,7 @@ if not os.path.exists(indir):
     os.makedirs(indir)
 
 filestoclear = os.listdir(indir)
-if len(filestoclear):
+if len(filestoclear) and args.clearinput:
     infob("Cleaning directory '%s:'" % indir)
     # delete only following files
     exttodel = ['in', 'out', 'temp', args.inext]
