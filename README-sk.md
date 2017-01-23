@@ -1,3 +1,6 @@
+### *Novinky (alebo prečo sa oplatí pullnuť)*
+*22. január 2017 -- pridaná podpora pre validátory pre input-tester*
+
 # input-tool
 Nástroj, ktorý výrazne zjednodušuje vytváranie a testovanie vstupov pre súťažné programátorské príklady. 
 Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-tester**
@@ -78,6 +81,7 @@ Cieľom tohto skriptu je otestovať všetky riešenia na vstupoch, overiť,
 či dávajú správne výstupy, zmerať čas behu a podobne. **Pozor**, slúži to len na domáce testovanie, 
 netestujte tým nejaké reálne kontesty, kde môžu užívatelia submitovať čo chcú. 
 Nemá to totiž žiaden sandbox ani žiadnu ochranu pred neprajníkmi.
+Na jeho použitie potrebujete, aby vám fungoval `/usr/bin/time`. Ak náhodou nefunguje, pogooglite, ako ho u seba rozbehať.
 
 Používa sa to veľmi jednoducho. Iba spustíte `input-tester <riešenie/viacriešení>` a ono to porobí všetko samé.
 Oplatí sa však vedieť nasledovné. 
@@ -93,8 +97,7 @@ Ostatné programy porovnávajú svoje výstupy s týmto.
 
 Dôležité je, aby program, ktorý generuje výstupy zbehol na všetkých vstupoch správne. Pokial by sa niekde zrúbal/vyTLEl, tak môžu byť výstupy pošahané. 
 
-Už existujú výstupy ale sú zlé? `-R` prepíše výstupy nanovo tým, čo vyrobí program. Tento prepínač funguje podobne, ako `-T out`. 
-Pri týchto monžostiach odporúčame púšťať len jeden program naraz, pretože každý ďalší pregeneruje vstupy znova. 
+Už existujú výstupy ale sú zlé? `-R` prepíše výstupy nanovo tým, čo vyrobí program. Tento prepínač funguje podobne, ako `-T out`. Pri týchto monžostiach odporúčame púšťať len jeden program naraz, pretože každý ďalší pregeneruje vstupy znova. 
 Ale nemôžete sa na to spoliehať. Navyše každý program si bude myslieť, že má správne výstupy, aj keby nemal.
 
 ### Riešenie
@@ -120,6 +123,9 @@ Správnosť výstupu sa nehodnotí tak, že ho len porovnáme s vzorovým? Treba
 Použite `-d check`, kde check je program, ktorý berie tri argumenty -- vstup, náš výstup, riešiteľov výstup.
 (Viac detailov a možností nájdete v helpe).
 
+### Validator
+Riešenie, ktoré sa začína `val` je považované za validátor. Validátor je program, ktorý na `stdin` dostane vstup a zrúbe sa (`exit 1`), ak vstup nebol správny. Na `stderr` môžete vypísať nejakú krátku správu, že čo bolo zle, na `stdout` radšej nič nepíšte. Pokiaľ nerobíte zveriny, tak sa `stdout` v podstate zahodí.
+
 ### Zobrazovanie
 Peknú tabuľku so zhrnutím zobrazíte pomocou `-s`
 Bežne sa výsledky zobrazujú farebne, dá sa to aj vypnúť. Tiež pokiaľ vás
@@ -132,5 +138,10 @@ schovať pomocou `-q`.
 input-tester sol-vzorak
 input-tester -t 10 -sq sol-* 
 input-tester -R -d checker.py sol-vzorak.py
+input-tester sol-100-dynamika sol-50-n3-bruteforce.cpp validate.cpp -s
 input-tester -h
 ```
+
+# Feedback
+
+Ak vám niečo nefunguje, alebo vám chýba nejaká funkcionalita, napíšte mi mail alebo vyrobte issue.
