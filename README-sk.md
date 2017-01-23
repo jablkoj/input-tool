@@ -108,7 +108,7 @@ Rozonávané prípony sú `.c`, `.cc` = `.cpp`, `.pas`, `.java`, `.py` = `.py3`,
 Tiež sa pokúsi určiť ako ste program chceli spustiť, či `./sol.py` alebo `python3 sol.py`. 
 Samozrejme, hádanie nie je dokonalé ale zatiaľ mám skústenosti, že funguje dosť dobre. 
 Fičúry sa dajú vypnúť pomocou `no-compile` (kompilácia), `-x` (celé automatické rozoznávanie).
-* Pokúsi sa (magicky) utriediť riešenia od najlepšieho po najhoršie. Poradie má zmysel napríklad, keď sa generujú nové výstupy. 
+* Pokúsi sa (magicky) utriediť riešenia od najlepšieho po najhoršie. Poradie má zmysel napríklad, keď sa generujú nové výstupy. Napríklad `sol-vzorak` je lepšie ako `sol-100` a to je lepšie ako `sol-010`, to je lepšie ako `sol-4` a to je lepšie ako `sol-wa`.
 Triedenie sa dá vypnúť `--no-sort`.
 
 ### Časový limit
