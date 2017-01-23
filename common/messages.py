@@ -8,8 +8,9 @@ class Status(Enum):
     wa = 1
     tle = 2
     exc = 3
-    ce = 4 # not user yet
+    ce = 4 # not used yet
     err = 5
+    valid = 6
 
     def __str__(self):
         return self.name.upper()
@@ -51,7 +52,8 @@ class Color:
         return Color.scores[p]
 
     def colorize(status, text, end=None):
-        return '%s%s%s' % ((Color.warning, Color.infog)[status==Status.ok], 
+        index = (status in (Status.ok, Status.valid))
+        return '%s%s%s' % ((Color.warning, Color.infog)[index],
                             text, 
                             end or Color.normal)
       
@@ -60,7 +62,7 @@ _sow = sys.stdout.write
 _sew = sys.stderr.write
 
 _codemap = {
-    'OK': 'green', 'WA': 'red', 'TLE': 'purple', 'EXC': 45, 'CE':'ERR', 'ERR': 41,
+    'OK': 'green', 'WA': 'red', 'TLE': 'purple', 'EXC': 45, 'CE':'ERR', 'ERR': 41, 'VALID': 'OK',
     'bad': 'red', 'good': 'green', 'ok': 'yellow', 'fine': 'blue', 'error': 'ERR',
     
     'score0': 196, 'score1': 208, 'score2': 226, 'score3': 228, 'score4': 46,

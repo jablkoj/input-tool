@@ -55,9 +55,9 @@ class Parser:
         'colortest' : (('--colortest',), {dest:'colortest', action:'store_true', 
             help:'test colors and exit'}),
         'quiet' : (('-q', '--quiet'), {dest:'quiet', action:'store_true',
-            help:'do let subprograms print stuff'}),
+            help:'dont let subprograms print stuff'}),
         'Quiet' : (('-Q', '--Quiet'), {dest:'Quiet', action:'store_true',
-            help:'do not print anything'}),
+            help:'dont print anything'}),
         'stats' : (('-s', '--statistics'), {dest:'stats', action:'store_true',
             help:'print statistics'}),
         

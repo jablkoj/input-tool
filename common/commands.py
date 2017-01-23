@@ -165,7 +165,7 @@ class Program:  # {{{
 class Solution(Program):  # {{{
     cmd_maxlen = len('Solution')
 
-    def updated_status(original, new):
+    def updated_status(self, original, new):
         if original == Status.ok:
             return new
         if new == Status.ok:
@@ -223,13 +223,13 @@ class Solution(Program):  # {{{
         input = ifile.rsplit('/', 1)[1].rsplit('.', 1)[0]
         batch = input if input.endswith('sample') else input.rsplit('.', 1)[0]
         batchresults = self.statistics['batchresults']
-        batchresults[batch] = Solution.updated_status(
+        batchresults[batch] = self.updated_status(
             batchresults.get(batch, Status.ok),
             status)
         self.statistics['maxtime'] = max(
             self.statistics['maxtime'], int(time * 1000))
         self.statistics['sumtime'] += int(time * 1000)
-        self.statistics['result'] = Solution.updated_status(
+        self.statistics['result'] = self.updated_status(
             self.statistics['result'], status)
 
     def timecmd(self, timefile, timelimit=0):
@@ -237,6 +237,7 @@ class Solution(Program):  # {{{
         return '/usr/bin/time -f "%s" -o %s -q %s' % ('%U', timefile, timekill)
 
     def run(self, ifile, ofile, tfile, checker, args):
+        isvalidator = isinstance(self, Validator)
         if not self.ready:
             error('%s not prepared for execution' % self.name)
         so = subprocess.PIPE if self.quiet else None
@@ -260,14 +261,13 @@ class Solution(Program):  # {{{
                 status = Status.exc
             else:
                 status = Status.err
-
             try:
                 usertime = float(open(timefile, 'r').read().strip())
             except:
                 usertime = -0.001
                 if status == Status.ok:
                     status = Status.exc
-            if status == Status.ok:
+            if status == Status.ok and not isvalidator:
                 if checker.check(ifile, ofile, tfile):
                     status = Status.wa
         except Exception as e:
@@ -277,6 +277,9 @@ class Solution(Program):  # {{{
         finally:
             if os.path.exists(timefile):
                 os.remove(timefile)
+
+        if isvalidator and (status in (Status.ok, Status.wa)):
+            status = Status.valid
 
         # construct summary
         self.record(ifile, status, usertime)
@@ -297,10 +300,35 @@ class Solution(Program):  # {{{
 #}}}
 
 
-class Validator(Program):  # {{{
+class Validator(Solution):  # {{{
+
+    def is_validator(filename):
+        return filename.startswith('val');
 
     def compare_mask(self):
         return (-2, self.name)
+
+    def updated_status(self, original, new):
+        if original == Status.valid:
+            return new
+        if new == Status.valid:
+            return original
+        if original == Status.err or new == Status.err:
+            return Status.err
+        return original
+
+    def get_statistics(self):
+        color = Color.score_color(self.statistics['result']==Status.valid, 1)
+        widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
+        colnames = [self.runcmd, self.statistics['maxtime'], self.statistics['sumtime'],
+                    '', self.statistics['result']]
+
+        return table_row(color, colnames, widths, [-1,1,1,1,0])
+
+    def __init__(self, name, args):
+        super().__init__(name, args)
+        self.statistics['result'] = Status.valid
+
 #}}}
 
 

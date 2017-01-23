@@ -17,7 +17,7 @@ options = [
 ]
 
 from common.parser import Parser
-from common.commands import Solution, Checker
+from common.commands import Solution, Validator, Checker
 from common.messages import *
 import atexit
 import os
@@ -34,7 +34,10 @@ Color.setup(args)
 solutions = []
 checker = Checker(args.diffcmd, args)
 for p in args.programs:
-    solutions.append(Solution(p, args))
+    if Validator.is_validator(p):
+        solutions.append(Validator(p, args))
+    else:
+        solutions.append(Solution(p, args))
 if args.sort:
     solutions.sort()
 programs = [checker]
@@ -64,7 +67,9 @@ else:
     infob("Outputs will be regenerated")
 
 
-def get_result_file(out_file, temp_file):
+def get_result_file(out_file, temp_file, isvalidator):
+    if isvalidator:
+        return temp_file
     if args.reset:
         return out_file
     if os.path.exists(out_file):
@@ -102,7 +107,11 @@ for input in inputs:
         print("%s >" % (input))
 
     for sol in solutions:
-        result_file = get_result_file(output_file, temp_file)
+        result_file = get_result_file(
+            output_file,
+            temp_file,
+            isinstance(sol, Validator),
+        )
         sol.run(input_file, output_file, result_file, checker, args)
         if (args.cleartemp and output_file != result_file and
             os.path.exists(result_file)):
