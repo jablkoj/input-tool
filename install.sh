@@ -17,7 +17,7 @@ function error {
 }
 
 path="/usr/local/bin"
-files="input-tester input-generator" #input-sample"
+files="input-tester input-generator input-sample"
 for f in $files; do
     cmd="sudo ln -sf $PWD/$f.py $path/$f"
     echo $cmd 

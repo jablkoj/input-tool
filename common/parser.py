@@ -1,4 +1,4 @@
-# (c) 2014 jano <janoh@ksp.sk> 
+# (c) 2014 jano <janoh@ksp.sk>
 import argparse, sys
 
 class Parser:
@@ -22,6 +22,10 @@ class Parser:
             help:'extension of temporary files (default=temp)'}),
         'reset' : (('-R', '--Reset'), {dest:'reset', action:'store_true',
             help:'recompute outputs, similar as -T out'}),
+        'batchname': (('-b', '--batch'), {dest:'batchname', default:'00.sample',
+            help:'batch name (default=00.sample)'}),
+        'multi': (('-m', '--force-multi'), {dest:'multi', action:'store_true',
+            help:'force batch (always print .a before extension)'}),
 
         # testing options
         'timelimit' : (('-t', '--time'), {dest:'timelimit', default:'0',
@@ -50,9 +54,11 @@ class Parser:
                   'as compiling'}),
 
         # verbosing
-        'colorful' : (('-b', '--boring'), {dest:'colorful', 
+        'colorful' : (('-b', '--boring'), {dest:'colorful',
             action:'store_false', help:'turn colors off'}),
-        'colortest' : (('--colortest',), {dest:'colortest', action:'store_true', 
+        'Colorful' : (('-B', '--Boring'), {dest:'colorful',
+            action:'store_false', help:'turn colors off'}),
+        'colortest' : (('--colortest',), {dest:'colortest', action:'store_true',
             help:'test colors and exit'}),
         'quiet' : (('-q', '--quiet'), {dest:'quiet', action:'store_true',
             help:'dont let subprograms print stuff'}),
@@ -60,7 +66,7 @@ class Parser:
             help:'dont print anything'}),
         'stats' : (('-s', '--statistics'), {dest:'stats', action:'store_true',
             help:'print statistics'}),
-        
+
         # cleanup
         'cleartemp' : (('-k', '--keep-temp'), {dest:'cleartemp', action:'store_false',
             help:'dont remove temporary files after finishing'}),
@@ -68,14 +74,16 @@ class Parser:
             help:'dont remove binary files after finishing'}),
         'clearinput' : (('-k', '--keep-inputs'), {dest:'clearinput', action:'store_false',
             help:'dont remove old input files. Samples are never removed'}),
-        
+
         # what to do
         'programs' : (('programs',), {nargs:'+',
             help:'list of programs to be run'}),
         'description' : (('description',), {nargs:'?',
             help:'recipe for inputs. If not provided, read it from stdin.'}),
-        'gencmd' : (('-g', '--gen'), {dest:'gencmd', default:'gen', 
+        'gencmd' : (('-g', '--gen'), {dest:'gencmd', default:'gen',
             help:'generator used for generating inputs (default=gen)'}),
+        'task' : (('task',), {nargs:'?',
+            help:'task statement. If not provided, read it from stdin.'}),
     }
 
 
@@ -86,7 +94,7 @@ class Parser:
             if args == None or kwargs == None:
                 raise NameError('Unrecognized option %s' % arg)
             self.parser.add_argument(*args, **kwargs)
-        
+
     def parse(self):
         self.args = self.parser.parse_args()
         return self.args

@@ -1,18 +1,18 @@
 # (c) 2014 jano <janoh@ksp.sk>
 '''
 Format of description files:
-    one line - one input
+    One line - one input
         If you end line with '\\', you can continue on next line. This action
-        ignores #,@,$,!,~... on the beginning of next line. Inputs inside
-        batch are named 'a-z' or 'a...a-z...z', if there are more than inputs.
-    empty line separates batches.
-        Batches are named 1-9 or 0..01-9..99 if there are more batches
+        ignores #,@,$,!,~... on the beginning of next line.
+    Inputs inside batch are named 'a-z' or 'a...a-z...z', if there are many inputs.
+    Empty line separates batches.
+        Batches are named 1-9 or 0..01-9..99 if there are many batches
     # starting lines are comments
     @, $, ! are used for special request on the next lines.
             @ - all future lines.
             $ - all lines in this batch.
             ! - next line.
-        Each of them overrides more specific one, so only the most specific or
+        Each of them overrides less specific ones, so only the most specific or
         last will be applied.
         You can use this commands in this lines, space separated
             rule=predefinedgenerator (not implemented yet)
@@ -117,6 +117,17 @@ class Input:
     def get_text(self):
         return self.text
 
+class Sample(Input):
+
+    def __init__(self, lines, path, batchname, id, ext):
+        super().__init__(lines, 0, id, id)
+        self.path = path + '/'
+        self.ext = ext
+        self.batch = batchname
+        self.effects = False
+
+    def save(self):
+        open(self.get_name(self.path, self.ext), 'w').write(self.text)
 
 class Recipe:
 
@@ -185,3 +196,49 @@ class Recipe:
         self._parse_recipe()
         for input in self.inputs:
             input.compile()
+
+_cumberbatch = '''\
+~~~~~~~~~~~~~~~~~~~+::=~:~=,~~~:=+=~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~:~==~:+::===::::,..,:~~+~~~~~~~~~~~~~:~:::~~~~
+::~~~~~~~~~~~~==:~~~.::~~,~,~,:====~:~=~~~~~~~~~~~:::::::~~~
+::~~~~~~~~~~~~:~:~~:,::~,,==::~:,.,,.~:~~:::~~~~~~~~~~~~~~~~
+~~~~~::~~~~~::~~::::,,:,,:~~:::=~::~~~=::~~~:=~~~~~~~~~~~~~~
+===~~~~~=~~~:~,:,::,,:,,:,,,,,:,:,,,,,:~,::,,,:~:==~~~~~~~~~
+==~~~~~~~~~,~,:.,,,.:,,:,,:,,,...,,,,,,,,,,,,..,~=+=~~~~~~=~
+~~~~~~~:::,::,,,,,~:::,,,.,,,,,,...,,,::,,.,.,.,:~:~~~~~~~~~
+~~~::=:~:~~:,:.,,,,,,,.::,...,.,....,~??=..,..,.,~:=====~~~~
+:~~~:~~:::~::,,,,..:.,,.:,,,,..,:===??II?+,..,.,.,::~=~~~~~~
+:::::,:::,,,,......,,.,.,,....,~++??IIIII?=..,.,,,::~=~~~~~~
+::::~~,,,,..,......,,,,,.,,...:++???IIIIIII:..,:,,::~+=~~~~~
+~~~:~:,,,,.,......,:..,,~=,,,,~+????IIIII7I+,,.....,~+~~~~~~
+~~~~:,,,,,.......,~+++====~~~~++????I?IIIII+:.,....,,,:=~~~~
+~~~~:,,.......,.,~=+++++++++++++???I?I?III?+:.....,,,,,~~~~~
+::~:,,,.....,.,,,~=+?????????????IIIIIIIII?+:......,:,,,~~~~
+:~~:,......,...,~=++???????????IIII??II??II?=........,,:~~~~
+~~~:,..........,==+?????????????I?????II???I+.......,,,~~~~~
+~~~:,..........:=+=~~~====+++?=++===+=~~::~=+,......:::====~
+~~~:::.........~=+=~=~~~:::::~~++~:::,,,,,~=?=,,...::~~~==~~
+::::~:,,..,:,,,=++++==~::::,~~???+~:~~~==+?+?=,:...,~~~~~~~~
+::::~:,...::,,:=++??+++=======?III=+===++????+,:,,::~~::~:::
+:::::::,..,=:~,:++??????+++?+??III?+??++?????~+=::::::::::::
+:::::::::..=++=~=+?????????????III?????????++++,~:::~~~~::~~
+:::::::~:,..===+=+++????????+I?IIII?=+????+=++~,:~~~~~~~~~~~
+::::::::::.,,.~~=====+????+~????????+=+?+++=:.:,~~~=========
+::::::::::::,,:.++++=++++=~=~:,~~~,,==~=++++.::,~~~~~~~~~~~~
+:~~~~~~~~~~~~~,.==++++++===++==~:~~=====++++.,,,:~~~~~~~~~~~
+::~:::::~~::~~...+=+++++===+++=~~~===~===++?.,,,::,~~~~~~~~~
+::::::::~:::::,..===+=++=~:~+++=+=~==::~==+:.:,,,,::~~~~~~~~
+::::::~~~::::,,..=~~====~~====~,,~=++======.,::..,:,:::~~~~~
+:::::~:~:::::,,,.:~~~~~~==++++?+++===++=~~:.,,:,..,,:,:,~~~~
+~~:~~~~~~~~~:,,,,.~:::::~=++=~~:~:~~=====:.,,:::...,,,,,,=~~
+~~~~~~~~~~~~,,,,,.:~:::~~=+===========+=~,.,,:::..,,.:.,~,:~
+~~~:~~~~~~~~,,,,,.,:~,::~~=+++???+++++=~..,,,,::...,.,,,::,:
+~~~~~~~~~~~~.,,,...:~~,,:::=++=====~==~...,,,,::,....,,,,,,,
+~~~~:~~~~~~:,,,,....:~~:,,,:::~:::::,.....,,,,,:,..,,,,,,,,,
+~~~~~~:~~~:,,,,,.....:~~~~:,,,,,,,,,.....,,,,,,,,..,,,,,,,:,
+~~~~~~::::,::,.,.....:::~~:~::,,,,,.....,,,,,,,,,,,,,,,,,:,:'''
+
+def prepare(args):
+    # lol ;)
+    if args.batchname.lower() == 'cumber':
+        print(_cumberbatch)
