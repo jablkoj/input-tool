@@ -17,7 +17,17 @@ raz za čas stiahnuť najnovšiu verziu. Stačí napísať `git pull` a všetko 
   (Alternatívne) Ak nemáte rootovské práva alebo si skripty nechcete inštalovať, môžete si napríklad spraviť   symlinky v domovskom priečinku a spúšťať `~/nazov-odkazu`. Alebo si môžete pridať aliasy do `.bashrc` alebo hocičo podobné.
 
 # input-sample
-Ešte nie je prekódené.
+Tento skript dostane na vstupe (alebo ako argument) zadanie príkladu. Vyrobí (defaultne v priečinku `./test`) sample vstupy a sample výstupy pre tento príklad.
+
+Defaultne pomenúva súbory `00.sample.in` resp. `00.sample.x.in`, ak je ich viac. Viete mu povedať, aby pomenúval vstupy inak, napr. `O.sample.in`, alebo `00.sample.a.in` aj keď je len jeden vstup.
+Dá sa nastaviť priečinok, kde sa vstupy a výstupy zjavia, a tiež prípony týchto súborov.
+
+Príklady použitia (spúšťame napríklad v `SVN/35rocnik/zima1/1/`):
+```
+$  input-sample GIT/zadania/35rocnik/zima1/zadania/prikl1.md
+$  input-sample -p 0.sample -m < cesta/prikl2.md
+$  input-sample -h 
+```
 
 # input-generator
 
