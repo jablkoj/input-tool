@@ -35,19 +35,21 @@ dostane rovnaké vstupy.
 - Znaky '@', '$', '!' majú rovnakú funkciu, hoci iný rozsah platnosti a precedenciu. 
   Vo všetkých troch prípadoch, nie je tento riadok chápaný ako popis vstupu, ale konfigurácia pre nasledujúce vstupy.
   Môžeme napríklad nastaviť `@ name=xyz batch=abc` a všetky nasledujúce vstupy sa budú volať `abc.xyz.in`.
-  Toto ľahko spôsobí, že si niektoré vstupy premažeme, preto treba používať tieto konfigurátory s rozumom.
+  Toto ľahko spôsobí, že si niektoré vstupy premažeme, preto treba používať tieto konfigurátory s rozumom.
   - Rozsahy platnosti sú '@'-všetko, '$'-jedna sada, '!'-jeden vstup, formálnejšie.
     - '!' len pre nasledujúci vstup.
     - '$' platí po najbližší riadok začínajúci '$' alebo po prázdny riadok (oddeľovač sady), podľa toho, čo príde skôr.
       Aplikuje sa, iba ak nie je platný '!' konfigurátor.
     - '@' po najbližší riadok začínajúci '@' a aplikuje sa iba ak neplatí žiaden '$' ano '!' modifikátor
-  - Konfigurovať vieme názov sady (batch), názov vstupu v sade (name) a prefix pre názov vstupu (class). 
-    Príklady použitia tejto fičúre:
+  - Konfigurovať vieme názov sady (batch), názov vstupu v sade (name), prefix pre názov vstupu (class), a generátor (gen).
+    Keďže whitespace-y slúžia na oddeľovanie parametrov, nepoužívajte ich v hodnotách parametrov.
+    Príklady použitia tejto fičúre:
     - Mám Bujov generátor a Janov generátor, každý má svoj IDF. Na začiatku Bujovho IDF dáme `@class=b` a na začiatku
       Janovho `@class=j`. Pustím `input-generator -g gen-buj idf-buj && input-generator -g gen-jano idf-jano -k` 
       a vygeneruje mi to vstupy s disjunktnými názvami (napr. `1.ba.in` a `1.ja.in`). 
       Všimnite si `-k` v druhom spustení, aby sa nezmazali bujove vstupy.
-    - Chcem vygenerovať aj sample. Ako?
+    - Mám tri generátory, a chcem mať len jeden IDF. Použijem @gen=nazovgeneratora, na správnych miestach.
+    - Chcem vygenerovať aj sample. Ako?
       Na koniec IDF pridám `$batch=00.sample` a za to parametre sample vstupov. Pozor, sample dávame na koniec, inak 
       by sa nám pokazilo číslovanie ostatných vstupov. 
       
@@ -70,6 +72,7 @@ $batch=0.sample
 2
 
 !name=este-som-zabudol-jeden
+8
 ```
 Vyrobí vstupy takto:
 ```
@@ -89,8 +92,17 @@ Vyrobí vstupy takto:
 ```
 Všimnite si, že posledný vstup má číslo sady 4 a nie 3. Totiž treta sada je tá sample, ktorá sa len inak volá.
 Preto je dôležité dávať sample a custom sady na koniec.
+
+Ideálne je používať v jednom IDF len jeden so znakov '@' '$' '!' inak ľahko vznikajú bugy.
+Tiež je dobré vo všetkých konfigurátoroch špecifikovať rovnakú množinu zmien, lebo ľahko prehliadnete, že ak napíšete
+```
+@batch=xyz
+!name=abc
+tak v tomto vstupe je {batch}==1, pretoze ! prekryje @.
+```
   
-### Zalamovanie riadkov
+### Viacriadkové vstupy
+TODO!!!! dalej necitajte
 Ak riadok končí znakom '\', je to ako keby pokračoval nasledujúcim riadkom (pričom prípadné efekty znakov
 '#', '@', '$', '!', '~', na začiatku ďalšieho riadku sa nevykonávajú).
 
