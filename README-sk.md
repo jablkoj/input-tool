@@ -69,7 +69,9 @@ Príklad IDF
 ```
 Vyrobí postupne vstupy `1.a.in`, `1.b.in`, `1.c.in`, `2.a.in`, `2.b.in`.
 
-IDF dokáže robiť veľa cool vecí navyše, ale tie ešte nie sú zdokumentované/otestované/naimplementované. 
+IDF dokáže robiť veľa cool vecí navyše (napríklad určiť rôzne generátory pre rôzne vstupy). 
+Pravdepodobne väčšinu z nich nikdy nepoužijete, ale niektoré vedia celkom pomôcť.
+Môžete si o nich prečítať v súbore `ADVANCED-IDF.md`.
 
 ### Spúšťanie
 
@@ -151,6 +153,8 @@ input-tester -R -d checker.py sol-vzorak.py
 input-tester sol-100-dynamika sol-50-n3-bruteforce.cpp validate.cpp -s
 input-tester -h
 ```
+
+
 
 # Feedback
 
