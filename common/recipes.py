@@ -16,7 +16,7 @@ Format of description files:
         last will be applied.
         You can use this commands in this lines, space separated
             rule=predefinedgenerator (not implemented yet)
-            gen=othergenerator (not implemented yet)
+            gen=othergenerator
             name=otherinputname
             class=prefixforname
             batch=otherbatchname
@@ -66,6 +66,7 @@ class Input:
         self.batch = batchid
         self.name = subid
         self.id = inputid
+        self.generator = None
         Input.maxbatch = max(Input.maxbatch, batchid)
         Input.maxid = max(Input.maxid, subid)
         self.compiled = False
@@ -82,6 +83,9 @@ class Input:
         v = self.commands.get('class', None)
         if v:
             self.name = v + self.name
+        v = self.commands.get('gen', None)
+        if v:
+            self.generator = v
 
     def _apply_format(self):
         if not self.effects:
@@ -143,6 +147,8 @@ class Recipe:
             if '=' in part:
                 k, v = part.split('=', 1)
                 commands[k] = v
+                if k == 'gen':
+                    self.programs.append(v)
         return commands
 
     def _parse_recipe(self):
@@ -169,11 +175,6 @@ class Recipe:
                 continue
             if line.startswith('#'):  # comment
                 continue
-            if line.startswith('~'):  # effects off
-                line = line[1:]
-                self.inputs[-1].effects = False
-                continue
-
             if line.startswith('@'):
                 all_commands = self._parse_commands(line[1:])
                 continue
@@ -183,13 +184,19 @@ class Recipe:
             if line.startswith('!'):
                 line_commands = self._parse_commands(line[1:])
                 continue
+            effects = True
+            if line.startswith('~'):  # effects off
+                line = line[1:]
+                effects = False
 
             self.inputs.append(Input(line, batchid, subid, inputid))
             subid += 1
             inputid += 1
-
-            self.inputs[-1].commands = \
-                line_commands or batch_commands or all_commands
+            if effects:
+                self.inputs[-1].commands = \
+                    line_commands or batch_commands or all_commands
+            else:
+                self.inputs[-1].effects = False
             line_commands = {}
 
     def process(self):

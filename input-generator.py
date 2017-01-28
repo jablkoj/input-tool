@@ -32,20 +32,20 @@ else:
     recipe = Recipe(sys.stdin)
 
 recipe.process()
-programs = recipe.programs
+programs = {x:Generator(x,args) for x in recipe.programs}
 
 # {{{ ----------- prepare programs -------------------
-generator = Generator(args.gencmd, args)
-programs = [generator]
+gencmd = args.gencmd
+programs[gencmd] = Generator(gencmd, args)
 
 def cleanup():
     if args.clearbin:
         for p in programs:
-            p.clear_files()
+            programs[p].clear_files()
 atexit.register(cleanup)
 
-for p in programs:
-    p.prepare()
+for p in sorted(programs):
+    programs[p].prepare()
 # }}}
 
 indir = args.indir
@@ -77,7 +77,7 @@ for input in recipe.inputs:
     short = ('{:>' + str(leftw) + 's}').format(input.get_name(ext=args.inext))
     text = input.get_text()
 
-    generator.generate(ifile, text)
+    programs[input.generator or gencmd].generate(ifile, text)
 
     if prev and prev.batch != input.batch:
         print(' ' * (leftw + 4) + '.')
