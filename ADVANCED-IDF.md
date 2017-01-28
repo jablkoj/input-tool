@@ -52,7 +52,66 @@ dostane rovnaké vstupy.
       by sa nám pokazilo číslovanie ostatných vstupov. 
       
 Príklad
-  
+```
+10
+20
+$class=prvocislo-
+37
+47
+!name=odpoved
+42
+
+$class=viac-nez-sto-
+110
+120
+
+$batch=0.sample
+1
+2
+
+!name=este-som-zabudol-jeden
+```
+Vyrobí vstupy takto:
+```
+                0.sample.a.in  <  1
+                0.sample.b.in  <  2
+                               .
+                       1.a.in  <  10
+                       1.b.in  <  20
+                 1.odpoved.in  <  42
+              1.prvocislo-c.in  <  37
+              1.prvocislo-d.in  <  47
+                               .
+           2.viac-nez-sto-a.in  <  110
+           2.viac-nez-sto-b.in  <  120
+                               .
+  4.este-som-zabudol-jeden.in  <  8
+```
+Všimnite si, že posledný vstup má číslo sady 4 a nie 3. Totiž treta sada je tá sample, ktorá sa len inak volá.
+Preto je dôležité dávať sample a custom sady na koniec.
+  
 ### Zalamovanie riadkov
 Ak riadok končí znakom '\', je to ako keby pokračoval nasledujúcim riadkom (pričom prípadné efekty znakov
 '#', '@', '$', '!', '~', na začiatku ďalšieho riadku sa nevykonávajú).
+
+Príklad
+```
+# komentár
+platí to len # na začiatku riadku
+a neplatí to po \
+# zalomenom riadku
+~# ak chcem zacat mriezkou, pouzijem ~
+platia efekty {{name}} {name}
+~neplatia efekty {{name}} {name}
+!name=z
+konfigurator sa vztahuje aj na premene: {name}
+```
+Sa interpretuje takto
+```
+platí to len # na začiatku riadku
+a neplatí to po # zalomenom riadku
+# ak chcem zacat mriezkou, pouzijem ~
+platia efekty {name} d
+neplatia efekty {{name}} {name}
+konfigurator sa vztahuje aj na premene: z
+```
