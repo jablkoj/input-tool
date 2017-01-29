@@ -75,14 +75,16 @@ prev = None
 for input in recipe.inputs:
     ifile = input.get_name(path=indir + '/', ext=args.inext)
     short = ('{:>' + str(leftw) + 's}').format(input.get_name(ext=args.inext))
-    text = input.get_text()
 
-    programs[input.generator or gencmd].generate(ifile, text)
+    programs[input.generator or gencmd].generate(
+        ifile, 
+        input.get_generation_text(),
+    )
 
     if prev and prev.batch != input.batch:
         print(' ' * (leftw + 4) + '.')
     prev = input
 
-    print('  %s  <  %s' % (short, text))
+    print('  %s  <  %s' % (short, input.get_info_text(len(short)+4)))
 
 infob('Done')

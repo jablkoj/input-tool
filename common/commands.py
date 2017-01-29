@@ -375,7 +375,7 @@ class Generator(Program):  # {{{
     def generate(self, ifile, text):
         cmd = "%s > %s" % (self.runcmd, ifile)
         p = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
-        p.communicate(str.encode(text+'\n'))
+        p.communicate(str.encode(text))
 
 #}}}
 

@@ -8,19 +8,14 @@ Format of description files:
     Empty line separates batches.
         Batches are named 1-9 or 0..01-9..99 if there are many batches
     # starting lines are comments
-    @, $, ! are used for special request on the next lines.
-            @ - all future lines.
-            $ - all lines in this batch.
-            ! - next line.
-        Each of them overrides less specific ones, so only the most specific or
-        last will be applied.
-        You can use this commands in this lines, space separated
-            rule=predefinedgenerator (not implemented yet)
-            gen=othergenerator
-            name=otherinputname
-            class=prefixforname
-            batch=otherbatchname
-        It is your responsibility to not overwrite your inputs with this.
+    $ Overrides some behaviour until next $.
+      You can use this commands in this lines, space separated
+          rule=predefinedgenerator (not implemented yet)
+          gen=othergenerator
+          name=otherinputname
+          class=prefixforname
+          batch=otherbatchname
+      It is your responsibility to not overwrite your inputs with this.
     ~ starting lines will have ~ removed and no special effect applyed on them.
         Effect of '\\' will be still applyed.
     {} you can use some special variables closed inside brackets.
@@ -118,8 +113,11 @@ class Input:
     def get_name(self, path='', ext=''):
         return '%s%s%s.%s' % (path, self.batch, self.name, ext)
 
-    def get_text(self):
-        return self.text
+    def get_generation_text(self):
+        return self.text+'\n'
+    def get_info_text(self, indent):
+        prefix = '\n' + ' '*indent + '<  '
+        return prefix.join(self.text.split('\n'))
 
 class Sample(Input):
 
@@ -153,7 +151,7 @@ class Recipe:
 
     def _parse_recipe(self):
         continuingline = False
-        all_commands, batch_commands, line_commands = {}, {}, {}
+        over_commands = {}
         batchid, subid, inputid = 1, 0, 1
 
         for line in self.recipe:
@@ -162,7 +160,7 @@ class Recipe:
                 continuingline = line.endswith('\\')
                 if continuingline:
                     line = line[:-1]
-                self.inputs[-1].text += line
+                self.inputs[-1].text += '\n' + line
                 continue
             continuingline = line.endswith('\\')
             if continuingline:
@@ -171,18 +169,11 @@ class Recipe:
             if len(line) == 0:  # new batch
                 batchid += 1
                 subid = 0
-                batch_commands = {}
                 continue
             if line.startswith('#'):  # comment
                 continue
-            if line.startswith('@'):
-                all_commands = self._parse_commands(line[1:])
-                continue
             if line.startswith('$'):
-                batch_commands = self._parse_commands(line[1:])
-                continue
-            if line.startswith('!'):
-                line_commands = self._parse_commands(line[1:])
+                over_commands = self._parse_commands(line[1:])
                 continue
             effects = True
             if line.startswith('~'):  # effects off
@@ -192,12 +183,8 @@ class Recipe:
             self.inputs.append(Input(line, batchid, subid, inputid))
             subid += 1
             inputid += 1
-            if effects:
-                self.inputs[-1].commands = \
-                    line_commands or batch_commands or all_commands
-            else:
-                self.inputs[-1].effects = False
-            line_commands = {}
+            self.inputs[-1].effects = effects
+            self.inputs[-1].commands = over_commands
 
     def process(self):
         self._parse_recipe()
