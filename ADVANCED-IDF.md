@@ -56,7 +56,7 @@ dostane rovnaké vstupy.
       Na koniec IDF pridám `$batch=00.sample` a za to parametre sample vstupov. Pozor, sample dávame na koniec, aby 
       sa nám nepokazilo číslovanie ostatných sád. 
       
-Príklad správania konfigurátorov
+Príklad správania konfigurátorov. Nasledujúci IDF
 ```
 10
 20
@@ -90,6 +90,28 @@ Vyrobí vstupy takto:
 Všimnite si, že posledný vstup má číslo sady 3 a nie 2. Totiž druhá sada je tá sample, ktorá sa len inak volá.
 Preto je dôležité dávať sample a custom sady na koniec.
   
+Ďalším príkladom je tento IDF:
+```
+# komentár
+platí to len # na začiatku riadku
+a neplatí to pri \
+# viacriadkových vstupoch
+~# ak chcem začat mriežkou, použijem ~
+platia efekty {{name}} {name}
+~neplatia efekty {{name}} {name}
+$name=z
+konfigurátor sa vzťahuje aj na premenné: {name}
+```
+Ktorý sa interpretuje takto:
+```
+platí to len # na začiatku riadku
+a neplatí to pri \n# viacriadkových vstupoch
+# ak chcem začat mriežkou, použijem ~
+platia efekty {name} d
+neplatia efekty {{name}} {name}
+konfigurátor sa vzťahuje aj na premenné: z
+```
+
 ### Viacriadkové vstupy
 Ak chcete, dať svojmu generátoru viac riadkový vstup, použite '\'.
 Ak riadok končí znakom '\', nasledujúci riadok bude tiež súčasťou tohto vstupu, pričom prípadné efekty znakov
@@ -111,26 +133,4 @@ Vyrobí dva sample vstupy. Všimnite si, že v IDF sa ignorujú biele znaky na z
 ```
 3
 1 2 3
-```
-
-Ďalšie príklady 
-```
-# komentár
-platí to len # na začiatku riadku
-a neplatí to pri \
-# viacriadkových vstupoch
-~# ak chcem začat mriežkou, použijem ~
-platia efekty {{name}} {name}
-~neplatia efekty {{name}} {name}
-$name=z
-konfigurátor sa vzťahuje aj na premenné: {name}
-```
-Sa interpretuje takto
-```
-platí to len # na začiatku riadku
-a neplatí to pri \n# viacriadkových vstupoch
-# ak chcem začat mriežkou, použijem ~
-platia efekty {name} d
-neplatia efekty {{name}} {name}
-konfigurátor sa vzťahuje aj na premenné: z
 ```
