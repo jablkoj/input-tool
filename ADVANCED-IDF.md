@@ -3,6 +3,32 @@
 V tomto texte si prezradíme nejak pokročilé funkcie a fičúrie IDF. Niektoré z nich sa vám môžu hodiť.
 Asi je fajn upozorniť, že zo začiatku a konca každého riadku v IDF sú odstránené biele znaky. 
 Hlavný účel IDF totiž je, aby určoval, čo dostane na vstupe genrátor, nie ako presne vyzerá výsledn vstup. Keďže je možné použiť aj príkazy typu `cat` ako generátor, biele znaky vedia niekedy zavážiť. 
+
+### Základné použitie IDF
+IDF -- input description file -- je súbor, ktorý popisuje, ako vyzerajú sady a vstupy. 
+Jeden riadok IDF slúži na vyrobenie jedného vstupu (až na špeciálne prípady popísané nižšie). 
+Každý takýto riadok poslúži ako vstup pre generátor a to, čo generátor vypľuje sa uloží do správneho súboru,
+napr. 02.a.in. Čiže do IDF chcete obvykle písať veci ako maximálne $n$ (alebo aj presné $n$), typ vstupu, 
+počet hrán grafu, atď., ale to už je na generátori aby sa rozhodol, čo s tými číslami spraví.
+
+Vstupy v jednej sade sú postupne písmenkované a-z (ak je ich veľa, tak sa použije viac písmen). 
+Sady v IDF oddeľujeme práznymi riadkami. Sady sú číslované 1..9, ak je ich napr. 20, tak 01..20.
+
+Príklad IDF
+```
+10 1000 ciara
+20 1000 nahodne
+30 1000 hviezda
+
+1000 1000000 ciara
+1000 1000000 nahodne
+```
+Vyrobí postupne vstupy `1.a.in`, `1.b.in`, `1.c.in`, `2.a.in`, `2.b.in`.
+V tomto návode (aj v tom, čo vypisuje `input-generator`) sa používa nasledovná notácia
+```
+1.a.in  <  10 1000 ciara
+```
+čo znamená, že generátoru dáme na vstup `"10 1000 ciara"` a to, čo generátor vypľuje, sa uloží do súboru `1.a.in`.
  
 ### Špeciálne premenné
 Ak chcete svojmu generátoru povedať, aký vstup vyrába, nie je problém. Nasledujúci IDF
