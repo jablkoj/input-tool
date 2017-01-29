@@ -27,28 +27,26 @@ pretože to je deterministické a zároveň unikátne pre každý vstup.
 Deterministické vstupy majú výhodu, že ak niekto iný pustí `input-generator` s rovnakými parametrami a rovnakým IDF, 
 dostane rovnaké vstupy.
 
-### Efekty znakov '#', '@', '$', '!', '~' na začiatku riadku.
+### Zo začiatku a konca každého riadku sú odstránené biele znaky
 
-- Riadky začínajúce '#' sú ignorované. (t.j. komentáre)
+### Efekty znakov '#', '$', '~' na začiatku riadku
+
+- Riadky začínajúce '#' sú ignorované. (t.j. sú komentáre)
 - Riadky začínajúce znakom '~' majú tento znak odstránený so začiatku
   a ďalej sú immúnne voči špeciálnym efektom, s výjnimkou '\' na konci riadku.
-- Znaky '@', '$', '!' majú rovnakú funkciu, hoci iný rozsah platnosti a precedenciu. 
-  Vo všetkých troch prípadoch, nie je tento riadok chápaný ako popis vstupu, ale konfigurácia pre nasledujúce vstupy.
-  Môžeme napríklad nastaviť `@ name=xyz batch=abc` a všetky nasledujúce vstupy sa budú volať `abc.xyz.in`.
+- Riadok začínajúci '$' je chápaný ako popis vstupu, ale konfigurácia pre nasledujúce vstupy až
+  po najbližší '$'.
+  Môžeme napríklad nastaviť `$ name=xyz batch=abc` a všetky nasledujúce vstupy sa budú volať `abc.xyz.in`.
   Toto ľahko spôsobí, že si niektoré vstupy premažeme, preto treba používať tieto konfigurátory s rozumom.
-  - Rozsahy platnosti sú '@'-všetko, '$'-jedna sada, '!'-jeden vstup, formálnejšie.
-    - '!' len pre nasledujúci vstup.
-    - '$' platí po najbližší riadok začínajúci '$' alebo po prázdny riadok (oddeľovač sady), podľa toho, čo príde skôr.
-      Aplikuje sa, iba ak nie je platný '!' konfigurátor.
-    - '@' po najbližší riadok začínajúci '@' a aplikuje sa iba ak neplatí žiaden '$' ano '!' modifikátor
-  - Konfigurovať vieme názov sady (batch), názov vstupu v sade (name), prefix pre názov vstupu (class), a generátor (gen).
+  
+  - Konfigurovať vieme názov sady (batch), názov vstupu v sade (name), prefix pre názov vstupu (class), a generátor (gen).
     Keďže whitespace-y slúžia na oddeľovanie parametrov, nepoužívajte ich v hodnotách parametrov.
     Príklady použitia tejto fičúre:
-    - Mám Bujov generátor a Janov generátor, každý má svoj IDF. Na začiatku Bujovho IDF dáme `@class=b` a na začiatku
-      Janovho `@class=j`. Pustím `input-generator -g gen-buj idf-buj && input-generator -g gen-jano idf-jano -k` 
+    - Mám Bujov generátor a Janov generátor, každý má svoj IDF. Na začiatku Bujovho IDF dáme `$class=b` a na začiatku
+      Janovho `$class=j`. Pustím `input-generator -g gen-buj idf-buj && input-generator -g gen-jano idf-jano -k` 
       a vygeneruje mi to vstupy s disjunktnými názvami (napr. `1.ba.in` a `1.ja.in`). 
       Všimnite si `-k` v druhom spustení, aby sa nezmazali bujove vstupy.
-    - Mám tri generátory, a chcem mať len jeden IDF. Použijem @gen=nazovgeneratora, na správnych miestach.
+    - Mám tri generátory, a chcem mať len jeden IDF. Použijem $gen=nazovgeneratora, na správnych miestach.
     - Chcem vygenerovať aj sample. Ako?
       Na koniec IDF pridám `$batch=00.sample` a za to parametre sample vstupov. Pozor, sample dávame na koniec, inak 
       by sa nám pokazilo číslovanie ostatných vstupov. 
@@ -60,68 +58,62 @@ Príklad
 $class=prvocislo-
 37
 47
-!name=odpoved
+$name=odpoved
+# všimnime si, že s predošlým riadkom prestalo platiť class=prvocislo-
 42
-
-$class=viac-nez-sto-
-110
-120
 
 $batch=0.sample
 1
 2
 
-!name=este-som-zabudol-jeden
+$name=este-som-zabudol-jeden
 8
 ```
 Vyrobí vstupy takto:
 ```
-                0.sample.a.in  <  1
+                0.sample.a.in  <  1
                 0.sample.b.in  <  2
                                .
                        1.a.in  <  10
                        1.b.in  <  20
                  1.odpoved.in  <  42
-              1.prvocislo-c.in  <  37
-              1.prvocislo-d.in  <  47
+             1.prvocislo-c.in  <  37
+             1.prvocislo-d.in  <  47
                                .
-           2.viac-nez-sto-a.in  <  110
-           2.viac-nez-sto-b.in  <  120
-                               .
-  4.este-som-zabudol-jeden.in  <  8
+  3.este-som-zabudol-jeden.in  <  8
 ```
-Všimnite si, že posledný vstup má číslo sady 4 a nie 3. Totiž treta sada je tá sample, ktorá sa len inak volá.
+Všimnite si, že posledný vstup má číslo sady 3 a nie 2. Totiž druhá sada je tá sample, ktorá sa len inak volá.
 Preto je dôležité dávať sample a custom sady na koniec.
-
-Ideálne je používať v jednom IDF len jeden so znakov '@' '$' '!' inak ľahko vznikajú bugy.
-Tiež je dobré vo všetkých konfigurátoroch špecifikovať rovnakú množinu zmien, lebo ľahko prehliadnete, že ak napíšete
-```
-@batch=xyz
-!name=abc
-tak v tomto vstupe je {batch}==1, pretoze ! prekryje @.
-```
   
 ### Viacriadkové vstupy
-TODO!!!! dalej necitajte
-Ak riadok končí znakom '\', je to ako keby pokračoval nasledujúcim riadkom (pričom prípadné efekty znakov
-'#', '@', '$', '!', '~', na začiatku ďalšieho riadku sa nevykonávajú).
+Ak chcete, dať svojmu generátoru viac riadkový vstup, (má zmysel pre `cat`), ukončite riadky '\'.
+Ak riadok končí znakom '\', nasledujúci riadok bude tiež súčasťou tohto vstupu, pričom prípadné efekty znakov
+'#', '$', '~', na začiatku ďalšieho riadku sa nevykonávajú).
 
-Príklad
+Príklad:
+```
+$gen=cat batch=0.sample
+4\
+1 2 3 4
+3\
+1 2 3
+```
+Ďalšie príklady 
 ```
 # komentár
 platí to len # na začiatku riadku
-a neplatí to po \
-# zalomenom riadku
+a neplatí to pri \
+# viacriadkových vstupoch
 ~# ak chcem zacat mriezkou, pouzijem ~
 platia efekty {{name}} {name}
 ~neplatia efekty {{name}} {name}
-!name=z
+$name=z
 konfigurator sa vztahuje aj na premene: {name}
 ```
 Sa interpretuje takto
 ```
 platí to len # na začiatku riadku
-a neplatí to po # zalomenom riadku
+a neplatí to pri \n# viacriadkových vstupoch
 # ak chcem zacat mriezkou, pouzijem ~
 platia efekty {name} d
 neplatia efekty {{name}} {name}
