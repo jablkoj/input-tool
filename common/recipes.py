@@ -2,8 +2,8 @@
 '''
 Format of description files:
     One line - one input
-        If you end line with '\\', you can continue on next line. This action
-        ignores #,@,$,!,~... on the beginning of next line.
+        If you end line with '\\', you can continue with next line. This action
+        ignores effects of #,$,~,... on the beginning of next line.
     Inputs inside batch are named 'a-z' or 'a...a-z...z', if there are many inputs.
     Empty line separates batches.
         Batches are named 1-9 or 0..01-9..99 if there are many batches
@@ -15,11 +15,10 @@ Format of description files:
           name=otherinputname
           class=prefixforname
           batch=otherbatchname
-      It is your responsibility to not overwrite your inputs with this.
+      It is your responsibility to not overwrite your own inputs with this.
     ~ starting lines will have ~ removed and no special effect applyed on them.
         Effect of '\\' will be still applyed.
     {} you can use some special variables closed inside brackets.
-        (none of them is implemented yet)
         {batch} - name of batch
         {name} - name of input
         {id} - 1 indexed number of this input
@@ -33,6 +32,7 @@ def _int_log(number, base):
     result = 1
     while number >= base:
         number //= base
+        
         result += 1
     return result
 
