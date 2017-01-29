@@ -1,6 +1,10 @@
 ### *Novinky (alebo prečo sa oplatí pullnuť)*
 *22. január 2017 -- pridaná podpora pre validátory pre input-tester*
 
+*23. január 2017 -- pridaný skript input-sample na výrobu sample vstupov so zadania*
+
+*28. január 2017 -- trocha dokončené špeciálne fičúry IDF, spísanie návodu do ADVANCED-IDF.md*
+
 # input-tool
 Nástroj, ktorý výrazne zjednodušuje vytváranie a testovanie vstupov pre súťažné programátorské príklady. 
 Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-tester**
@@ -154,8 +158,6 @@ input-tester sol-100-dynamika sol-50-n3-bruteforce.cpp validate.cpp -s
 input-tester -h
 ```
 
-
-
 # Feedback
 
-Ak vám niečo nefunguje, alebo vám chýba nejaká funkcionalita, napíšte mi mail alebo vyrobte issue.
+Ak vám niečo nefunguje, alebo vám chýba nejaká funkcionalita, napíšte mi, prosím, mail alebo vyrobte issue.
