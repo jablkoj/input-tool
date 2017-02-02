@@ -135,7 +135,7 @@ Triedenie sa dá vypnúť `--no-sort`.
 `-t <limit-v-sekundach>`. 
 
 ### Checker
-Správnosť výstupu sa nehodnotí tak, že ho len porovnáme s vzorovým? Treba checker? Nie je problém.
+Správnosť výstupu sa nehodnotí tak, že ho len porovnáme so vzorovým? Treba checker? Nie je problém.
 Použite `-d check`, kde check je program, ktorý berie tri argumenty -- vstup, náš výstup, riešiteľov výstup.
 (Viac detailov a možností nájdete v helpe).
 
