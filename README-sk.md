@@ -41,26 +41,26 @@ $  input-sample -h
 3. Spustíte input-generátor a tešíte sa.
 
 ### Generátor
-Generátor sa bežne volá `gen`. Ak sa volá inač, treba to povedať testeru pomocou prepínača `-g`.
-To je program, ktorý berie na vstupe jeden riadok (kde dáte čo chcete, napríklad dve čísla, maximálne $n$ a $m$.)
+Generátor sa bežne volá `gen` (príponu si `input-tool` vie domyslieť, takže `gen.py`, `gen.cpp`, `gen.pas`, ... je všetko obsiahnté pod `gen`). Ak sa váš generátor volá inak, treba to povedať testeru pomocou prepínača `-g`.
+Generátor je program, ktorý berie na vstupe jeden riadok (kde dáte čo chcete, napríklad dve čísla, maximálne $n$ a $m$.)
 Tento program vypíše, normálne na stdout, jeden vstup úlohy. Dávajte si pozor, aby bol vypísaný vstup korektný,
-žiadne medzery na koncoch riadkov, dodržujte limity, čo slubujete v zadaní. 
-Jedna z vecí, čo je dobré robiť je generovať viacero typov vstupov.
+žiadne medzery na koncoch riadkov, dodržujte limity, čo sľubujete v zadaní. 
+Jedna z vecí, čo je dobré robiť, je generovať viacero typov vstupov.
 (Povedzme náhodné čísla, veľa clustrov rovnakých, samé párne lebo vtedy je bruteforce pomalý, atď.) 
 To je dobré riešiť tak, že jedno z čísel, čo generátor dostane na vstupe je typ, 
 podľa ktorého sa rozhodne, čo vygeneruje.
 
-O zvyšné veci by sa mal postarať input-generator.
+O zvyšné veci by sa mal postarať `input-generator`.
 
 ### IDF
 IDF -- input description file -- je súbor, ktorý popisuje, ako vyzerajú sady a vstupy. 
 Jeden riadok IDF slúži na vyrobenie jedného vstupu (až na špeciálne riadky). 
 Každý takýto riadok poslúži ako vstup pre generátor a to, čo generátor vypľuje sa uloží do správneho súboru,
-napr. 02.a.in. Čiže do IDF chcete obvykle písať veci ako maximálne $n$ (alebo aj presné $n$), typ vstupu, 
+napr. `02.a.in`. Čiže do IDF chcete obvykle písať veci ako maximálne $n$ (alebo aj presné $n$), typ vstupu, 
 počet hrán grafu, atď., ale to už je na generátori aby sa rozhodol, čo s tými číslami spraví.
 
-Vstupy v jednej sade sú postupne písmenkované a-z (ak je ich veľa, tak sa použije viac písmen). 
-Sady v IDF oddeľujeme práznymi riadkami. Sady sú číslované 1..9, ak je ich napr. 20, tak 01..20.
+Vstupy v jednej sade sú postupne písmenkované `a-z` (ak je ich veľa, tak sa použije viac písmen). 
+Sady v IDF oddeľujeme práznymi riadkami. Sady sú číslované `1..9`, ak je ich napr. `20`, tak `01..20`.
 
 Príklad IDF
 ```
@@ -73,22 +73,28 @@ Príklad IDF
 ```
 Vyrobí postupne vstupy `1.a.in`, `1.b.in`, `1.c.in`, `2.a.in`, `2.b.in`.
 
-IDF dokáže robiť veľa cool vecí navyše (napríklad určiť rôzne generátory pre rôzne vstupy). 
-Pravdepodobne väčšinu z nich nikdy nepoužijete, ale niektoré vedia celkom pomôcť.
-Môžete si o nich prečítať v súbore `ADVANCED-IDF.md`.
-
 ### Spúšťanie
 
-Ináč keď commitujete vstupy, nezabudnite comitnúť aj generátor a IDF.
+Pokiaľ robíte vstupy do KSP, odporúčané je púšťať `input-generator idf` bez prepínačov, 
+aby ostatní vedúci vedeli vygenerovať rovnaké vstupy. Prepínače slúžia hlavne na to, ak robíte vstupy pre nejakú inú súťaž, kde sú iné prípony/ iná priečinková štruktúra. Iné prepínače zasa pomáhajú pri debugovaní.
+
+Pokiaľ potrebujete robiť zveriny v KSP, napríklad použiť viac generátorov na jednu úlohu, toto sa dá špecifikovať v IDF.
+Ak chcete vedieť, aké cool veci navyše dokážete v IDF popísať, prečítajte si o nich v súbore `ADVANCED-IDF.md`.
+
+Mimochodom, keď commitujete vstupy, nezabudnite comitnúť aj generátor (nie binárku, len zdroják) a `idf`.
 
 ```
+#  Odporúčané je použiť defaultný tvar:
 $  input-generator idf
+
+#  Keď potrebujete, dá sa však spraviť mnoho iných vecí
 $  input-generator -i . -I input -g gen-special.cpp -qK < idf
-#  You can use help to understand the previous line.
-$  input-generator -h 
+
+#  Pre pochopenie predošlého riadku spustite
+$  input-generator -h
 ```
 
-**Pozor** si treba dávať na to, že input-generátor, ak mu nepovieme ináč, 
+**Pozor** si treba dávať na to, že input-generátor, ak mu nepovieme prepínačom inak, 
 zmaže všetky staré vstupy, okrem samplov.
 
 # input-tester
