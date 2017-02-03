@@ -110,10 +110,10 @@ Oplatí sa však vedieť nasledovné.
 
 ### Help
 ```
-input-generator -h
+input-tester -h
 ```
 
-### Pregenerovanie
+### Pregenerovanie výstupov
 Ak ešte neexistuje vzorový výstup ku nejakému vstupu, použije sa prvý program na jeho vygenerovanie. 
 Ostatné programy porovnávajú svoje výstupy s týmto.
 
@@ -130,9 +130,9 @@ Tieto skripty sú pomerne inteligentné, takže
 * Automaticky sa pokúsia zistiť, aký program ste chceli spustiť a občas aj skompiluje, čo treba skompilovať. 
 Ak napríklad zadáte `sol-bf` pokúsi sa nájsť, či tam nie je nejaké `sol-bf.py`, `sol-bf.cpp`.. a pokúsi sa doplniť.
 Rozonávané prípony sú `.c`, `.cc` = `.cpp`, `.pas`, `.java`, `.py` = `.py3`, `.py2`. 
-Tiež sa pokúsi určiť ako ste program chceli spustiť, či `./sol.py` alebo `python3 sol.py`. 
+Tiež sa pokúsi určiť, ako ste program chceli spustiť, či `./sol.py` alebo `python3 sol.py`. 
 Samozrejme, hádanie nie je dokonalé ale zatiaľ mám skústenosti, že funguje dosť dobre. 
-Fičúry sa dajú vypnúť pomocou `no-compile` (kompilácia), `-x` (celé automatické rozoznávanie).
+Fičúry sa dajú vypnúť pomocou `--no-compile` (kompilácia), `-x` (celé automatické rozoznávanie).
 * Pokúsi sa (magicky) utriediť riešenia od najlepšieho po najhoršie. Poradie má zmysel napríklad, keď sa generujú nové výstupy. Napríklad `sol-vzorak` je lepšie ako `sol-100` a to je lepšie ako `sol-010`, to je lepšie ako `sol-4` a to je lepšie ako `sol-wa`.
 Triedenie sa dá vypnúť `--no-sort`.
 
