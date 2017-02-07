@@ -12,13 +12,25 @@ Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-te
 ### Inštalácia
 Na **Linuxe** je to dosť jednoduché. Inde to ani nefunguje :)
 
-1. Stiahnite si zdrojáky -- `git clone git@github.com:jablkoj/input-tool.git` alebo `git clone https://github.com/jablkoj/input-tool.git`, ak nemáte konto na githube.
-Tento nástroj sa stále vyvíja, takže je fajn
-raz za čas stiahnuť najnovšiu verziu. Stačí napísať `git pull` a všetko sa stiahne samé.
-2. Spustite `./install.sh`. Tento príkaz vytvorí symlinky vo vnútri vášho  `/usr/local/bin`. 
+1. Prerekvizity --
+  Potrebujete mať nainštalovaný `python3`, príkaz `time` (nestačí bashova funkcia) a
+  kompilátory C/C++ (kompilujeme pomocou `make`, Pascalu (`fpc`) a Javy. 
+  Java a Pascal nie su nutné ak neplánujete takéto programy spúšťať.
+  Na konci `.bashrc` odporúčame mať  
+  `export CXXFLAGS="-O2 -std=gnu++11 -Wno-unused-result -DDG=1"`   
+  aby sa vaše programy spúštali rovnako ako na testovači.
+  
+2. Stiahnite si zdrojáky --  
+  `git clone git@github.com:jablkoj/input-tool.git` alebo  
+  `git clone https://github.com/jablkoj/input-tool.git`, ak nemáte konto na githube.  
+  Tento nástroj sa stále vyvíja, takže je fajn
+  raz za čas stiahnuť najnovšiu verziu. Stačí napísať `git pull` a všetko sa stiahne samé.
+
+3. Spustite `./install.sh`. Tento príkaz vytvorí symlinky vo vnútri vášho  `/usr/local/bin`. 
   Potrebuje na to rootovské práva, takže zadajte heslo, keď sa to spýta. Tento príkaz stačí spraviť raz,
   **netreba** ho opakovať po update zdrojákov. To je čaro symlinkov.
   (Alternatívne) Ak nemáte rootovské práva alebo si skripty nechcete inštalovať, môžete si napríklad spraviť   symlinky v domovskom priečinku a spúšťať `~/nazov-odkazu`. Alebo si môžete pridať aliasy do `.bashrc` alebo hocičo podobné.
+
 
 # input-sample
 Tento skript dostane na vstupe (alebo ako argument) zadanie príkladu. Vyrobí (defaultne v priečinku `./test`) sample vstupy a sample výstupy pre tento príklad.
