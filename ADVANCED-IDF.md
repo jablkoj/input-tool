@@ -66,21 +66,20 @@ dostane rovnaké vstupy.
   Môžeme napríklad nastaviť `$ name=xyz batch=abc` a všetky nasledujúce vstupy sa budú volať `abc.xyz.in`.
   Konfigurácia platí až po najbližší riadok začínajúci '$'.
   Ak sa viacero vstupov volá rovnako, jednoducho sa premažú, preto treba používať tieto konfigurátory s rozumom.
-  
-  - Konfigurovať vieme názov sady (batch), názov vstupu v sade (name), prefix pre názov vstupu (class), a generátor (gen).
-    Keďže whitespace-y slúžia na oddeľovanie parametrov, nepoužívajte ich v hodnotách parametrov.
-    Táto fičúra sa môže hodiť na riešenie nasledovných problémov:
-    - Mám Bujov generátor a Janov generátor, každý má svoj IDF. Chcem aby neboli kolízie medzi názvami vstupov. 
-      Riešenie -- na začiatku  Bujovho IDF dáme `$class=b` a na začiatku Janovho `$class=j`. Pustím 
-      ```
-      input-generator -g gen-buj idf-buj && input-generator -g gen-jano idf-jano -k
-      ```
+  + Konfigurovať vieme názov sady (batch), názov vstupu v sade (name), prefix pre názov vstupu (class), a generátor (gen).
+    Keďže whitespace-y slúžia na oddeľovanie parametrov, nepoužívajte ich v hodnotách parametrov.
+    Táto fičúra sa môže hodiť na riešenie nasledovných problémov: 
+    
+    * Mám Bujov generátor a Janov generátor, každý má svoj IDF. Chcem aby neboli kolízie medzi názvami vstupov.  
+      _Riešenie:_ na začiatku  Bujovho IDF dáme `$class=b` a na začiatku Janovho `$class=j`. Pustím    
+      `input-generator -g gen-buj idf-buj && input-generator -g gen-jano idf-jano -k`  
       a vygeneruje mi to vstupy s disjunktnými názvami (napr. `1.ba.in` a `1.ja.in`). 
-      Všimnite si `-k` v druhom spustení, ktoré spôsobí, aby sa nezmazali Bujove vstupy.
-    - Mám tri generátory, a chcem mať len jeden IDF. Riešenie použijem $gen=nazovgeneratora, na správnych miestach.
-    - Chcem vygenerovať aj sample. Riešenie
-      Na koniec IDF pridám `$batch=00.sample` a za to parametre sample vstupov. Pozor, sample dávame na koniec, aby 
-      sa nám nepokazilo číslovanie ostatných sád. 
+      Všimnite si `-k` v druhom spustení, ktoré spôsobí, aby sa nezmazali Bujove vstupy. 
+    * Mám tri generátory, a chcem mať len jeden IDF.  
+      _Riešenie:_ použijem `$gen=nazovgeneratora`, na správnych miestach.  
+    * Chcem vygenerovať aj sample.  
+      _Riešenie:_ Na koniec IDF pridám `$batch=00.sample` a za to parametre sample vstupov. 
+      Pozor, sample dávame na koniec, aby sa nám nepokazilo číslovanie ostatných sád.
       
 Príklad správania konfigurátorov. Nasledujúci IDF
 ```
