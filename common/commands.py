@@ -10,6 +10,8 @@ Naming conventions -- Type of file is determined by prefix.
                       Stderr is ignored.
   val - validator  -- Gets input on stdin, prints one line (optional)
                       and returns 0 (good input) / 1 (bad input).
+                      Also gets input name as arguments split by '.',
+                      example: ./validator 00 sample a in < 00.sample.a.in
   diff, check, ch_ito_, test - checker
                    -- Gets arguments with names of files.
   <other>          -- Anything. E.g. you can use arbitrary program as generator,
@@ -69,7 +71,7 @@ class Program:  # {{{
         self.compilecmd = None
         self.source = None
         self.ext = None
-        self.runcmd = name
+        self.run_cmd = name
         self.filestoclear = []
 
         # if it is final command, dont do anything
@@ -85,43 +87,43 @@ class Program:  # {{{
                     break
         else:
             self.source = name
-            self.runcmd, self.ext = name.rsplit('.', 1)
+            self.run_cmd, self.ext = name.rsplit('.', 1)
 
         if not self.ext in all_ext:
-            self.runcmd = name
+            self.run_cmd = name
             return
 
-        # compute runcmd
+        # compute run_cmd
         if self.ext in script_ext:
-            self.runcmd = self.source
+            self.run_cmd = self.source
 
         docompile = (
             self.cancompile and
             (self.ext in compile_ext) and
             (self.source == name or
-            not os.path.exists(self.runcmd) or
-            is_file_newer(self.source, self.runcmd))
+            not os.path.exists(self.run_cmd) or
+            is_file_newer(self.source, self.run_cmd))
         )
         if docompile:
             if self.ext in ext_c:
-                self.compilecmd = 'make %s' % self.runcmd
-                self.filestoclear.append(self.runcmd)
+                self.compilecmd = 'make %s' % self.run_cmd
+                self.filestoclear.append(self.run_cmd)
             elif self.ext in ext_pas:
-                self.compilecmd = 'fpc -o%s %s' % (self.runcmd, self.source)
-                self.runcmd = self.runcmd
-                self.filestoclear.append(self.runcmd)
-                self.filestoclear.append(self.runcmd + '.o')
+                self.compilecmd = 'fpc -o%s %s' % (self.run_cmd, self.source)
+                self.run_cmd = self.run_cmd
+                self.filestoclear.append(self.run_cmd)
+                self.filestoclear.append(self.run_cmd + '.o')
             elif self.ext in ext_java:
                 self.compilecmd = 'javac %s' % self.source
-                self.filestoclear.append(self.runcmd + '.class')
+                self.filestoclear.append(self.run_cmd + '.class')
 
-        if not os.access(self.runcmd, os.X_OK):
+        if not os.access(self.run_cmd, os.X_OK):
             if self.ext in ext_py3:
-                self.runcmd = 'python3 ' + self.source
+                self.run_cmd = 'python3 ' + self.source
             if self.ext in ext_py2:
-                self.runcmd = 'python2 ' + self.source
+                self.run_cmd = 'python2 ' + self.source
             if self.ext in ext_java:
-                self.runcmd = 'java ' + self.runcmd
+                self.run_cmd = 'java ' + self.run_cmd
 
     def prepare(self):
         if self.compilecmd != None:
@@ -135,12 +137,12 @@ class Program:  # {{{
                 error('Compilation failed.')
 
         if (not self.forceexecute and
-            os.access(self.runcmd, os.X_OK) and
-                self.runcmd[0].isalnum()):
-            self.runcmd = './' + self.runcmd
+            os.access(self.run_cmd, os.X_OK) and
+                self.run_cmd[0].isalnum()):
+            self.run_cmd = './' + self.run_cmd
 
         if isinstance(self, Solution):
-            Solution.cmd_maxlen = max(Solution.cmd_maxlen, len(self.runcmd))
+            Solution.cmd_maxlen = max(Solution.cmd_maxlen, len(self.run_cmd))
         self.ready = True
 
     def clear_files(self):
@@ -157,7 +159,7 @@ class Program:  # {{{
         self.forceexecute = args.execute
         self.ready = False
 
-        # compute runcmd, compilecmd and filestoclear
+        # compute run_cmd, compilecmd and filestoclear
         self._transform()
 #}}}
 
@@ -214,7 +216,7 @@ class Solution(Program):  # {{{
                 points += 1
         color = Color.score_color(points, maxpoints)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
-        colnames = [self.runcmd, self.statistics['maxtime'], self.statistics['sumtime'],
+        colnames = [self.run_cmd, self.statistics['maxtime'], self.statistics['sumtime'],
                     points, self.statistics['result']]
 
         return table_row(color, colnames, widths, [-1,1,1,1,0])
@@ -232,9 +234,12 @@ class Solution(Program):  # {{{
         self.statistics['result'] = self.updated_status(
             self.statistics['result'], status)
 
-    def timecmd(self, timefile, timelimit=0):
+    def time_cmd(self, timefile, timelimit=0):
         timekill = 'timeout %s' % timelimit if timelimit else ''
         return '/usr/bin/time -f "%s" -o %s -q %s' % ('%U', timefile, timekill)
+
+    def run_args(self, ifile):
+        return ''
 
     def run(self, ifile, ofile, tfile, checker, args):
         isvalidator = isinstance(self, Validator)
@@ -242,15 +247,18 @@ class Solution(Program):  # {{{
             error('%s not prepared for execution' % self.name)
         so = subprocess.PIPE if self.quiet else None
         se = subprocess.PIPE if self.quiet else None
-        timefile = '.temptime-%s-%s-%s' % (
+        timefile = '.temptime-%s-%s-%s.tmp' % (
             to_base_alnum(self.name),
             to_base_alnum(ifile),
             os.getpid(),
         )
         # run solution
         usertime = -1
-        timecmd = self.timecmd(timefile, int(args.timelimit))
-        cmd = '%s %s < %s > %s' % (timecmd, self.runcmd, ifile, tfile)
+        time_cmd = self.time_cmd(timefile, int(args.timelimit))
+
+        cmd = '%s %s %s< %s > %s' % (time_cmd, self.run_cmd,
+            self.run_args(ifile), ifile, tfile)
+        info(cmd)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
             if result == 0:
@@ -283,15 +291,15 @@ class Solution(Program):  # {{{
 
         # construct summary
         self.record(ifile, status, usertime)
-        runcmd = ('{:<' + str(Solution.cmd_maxlen) + 's}').format(self.runcmd)
+        run_cmd = ('{:<' + str(Solution.cmd_maxlen) + 's}').format(self.run_cmd)
         time = '{:6d}'.format(int(usertime * 1000))
 
         if args.inside_oneline:
             input = ('{:' + str(args.inside_inputmaxlen) + 's}').format(
                 (ifile.rsplit('/', 1)[1]))
-            summary = '%s < %s %sms.' % (runcmd, input, time)
+            summary = '%s < %s %sms.' % (run_cmd, input, time)
         else:
-            summary = '    %s  %sms.' % (runcmd, time)
+            summary = '    %s  %sms.' % (run_cmd, time)
 
         print(Color.colorize(status, summary), status.colored())
 
@@ -320,10 +328,13 @@ class Validator(Solution):  # {{{
     def get_statistics(self):
         color = Color.score_color(self.statistics['result']==Status.valid, 1)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
-        colnames = [self.runcmd, self.statistics['maxtime'], self.statistics['sumtime'],
+        colnames = [self.run_cmd, self.statistics['maxtime'], self.statistics['sumtime'],
                     '', self.statistics['result']]
 
         return table_row(color, colnames, widths, [-1,1,1,1,0])
+
+    def run_args(self, ifile):
+        return ' '.join(ifile.split('/')[-1].split('.')) + ' '
 
     def __init__(self, name, args):
         super().__init__(name, args)
@@ -340,7 +351,7 @@ class Checker(Program):  # {{{
     def __init__(self, name, args):
         super().__init__(name, args)
         if name == 'diff':
-            self.runcmd = 'diff'
+            self.run_cmd = 'diff'
             self.compilecmd = None
             self.forceexecute = True
 
@@ -353,7 +364,7 @@ class Checker(Program):  # {{{
         }
         for key in diff_map:
             if to_base_alnum(self.name).startswith(key):
-                return self.runcmd + diff_map[key]
+                return self.run_cmd + diff_map[key]
         return None
 
     def check(self, ifile, ofile, tfile):
@@ -373,7 +384,7 @@ class Generator(Program):  # {{{
         return (-4, self.name)
 
     def generate(self, ifile, text):
-        cmd = "%s > %s" % (self.runcmd, ifile)
+        cmd = "%s > %s" % (self.run_cmd, ifile)
         p = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
         p.communicate(str.encode(text))
 
