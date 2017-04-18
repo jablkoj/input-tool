@@ -258,7 +258,6 @@ class Solution(Program):  # {{{
 
         cmd = '%s %s %s< %s > %s' % (time_cmd, self.run_cmd,
             self.run_args(ifile), ifile, tfile)
-        info(cmd)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
             if result == 0:
