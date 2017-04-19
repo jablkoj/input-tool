@@ -1,4 +1,6 @@
 ### *Novinky (alebo prečo sa oplatí pullnuť)*
+*18. apríl 2017 -- validátory dostávajú ako argumenty názov súboru*
+
 *22. január 2017 -- pridaná podpora pre validátory pre input-tester*
 
 *23. január 2017 -- pridaný skript input-sample na výrobu sample vstupov so zadania*
@@ -159,6 +161,8 @@ Použite `-d check`, kde check je program, ktorý berie tri argumenty -- vstup, 
 
 ### Validator
 Riešenie, ktoré sa začína `val` je považované za validátor. Validátor je program, ktorý na `stdin` dostane vstup a zrúbe sa (`exit 1`), ak vstup nebol správny. Na `stderr` môžete vypísať nejakú krátku správu, že čo bolo zle, na `stdout` radšej nič nepíšte. Pokiaľ nerobíte zveriny, tak sa `stdout` v podstate zahodí.
+
+Validátor navyše dostane ako argumenty názov vstupného súboru rozsekaný podľa bodky. Príklad: `./validator 00 sample a in < 00.sample.a.in`. Tieto argumenty môžete odignorovať, alebo využiť, a napríklad kontrolovať, že ak je číslo sady `01`, tak vstup má byť do 100, ak je číslo sady `02`, vstup má byť do 1000.
 
 ### Zobrazovanie
 Peknú tabuľku so zhrnutím zobrazíte pomocou `-s`
