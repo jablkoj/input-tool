@@ -1,4 +1,7 @@
 ### *Novinky (alebo prečo sa oplatí pullnuť)*
+
+*23. máj 2018 -- čiastočná podpora pre Mac OS*
+
 *18. apríl 2017 -- validátory dostávajú ako argumenty názov súboru*
 
 *22. január 2017 -- pridaná podpora pre validátory pre input-tester*
@@ -12,12 +15,12 @@ Nástroj, ktorý výrazne zjednodušuje vytváranie a testovanie vstupov pre sú
 Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-tester**
 
 ### Inštalácia
-Na **Linuxe** je to dosť jednoduché. Inde to ani nefunguje :)
+Na **Linuxe** je to dosť jednoduché.
 
 1. Prerekvizity --
-  Potrebujete mať nainštalovaný `python3`, príkaz `time` (nestačí bashova funkcia) a
+  Potrebujete mať nainštalovaný `python3`, príkaz `time` (nestačí bashová funkcia) a
   kompilátory C/C++ (kompilujeme pomocou `make`, Pascalu (`fpc`) a Javy. 
-  Java a Pascal nie su nutné ak neplánujete takéto programy spúšťať.
+  Java a Pascal nie su nutné, ak neplánujete takéto programy spúšťať.
   Na konci `.bashrc` odporúčame mať  
   `export CXXFLAGS="-O2 -std=gnu++11 -Wno-unused-result -DDG=1"`   
   aby sa vaše programy spúštali rovnako ako na testovači.
@@ -31,8 +34,10 @@ Na **Linuxe** je to dosť jednoduché. Inde to ani nefunguje :)
 3. Spustite `./install.sh`. Tento príkaz vytvorí symlinky vo vnútri vášho  `/usr/local/bin`. 
   Potrebuje na to rootovské práva, takže zadajte heslo, keď sa to spýta. Tento príkaz stačí spraviť raz,
   **netreba** ho opakovať po update zdrojákov. To je čaro symlinkov.
-  (Alternatívne) Ak nemáte rootovské práva alebo si skripty nechcete inštalovať, môžete si napríklad spraviť   symlinky v domovskom priečinku a spúšťať `~/nazov-odkazu`. Alebo si môžete pridať aliasy do `.bashrc` alebo hocičo podobné.
+  (Alternatívne) Ak nemáte rootovské práva alebo si skripty nechcete inštalovať, môžete si napríklad spraviť symlinky v domovskom priečinku a spúšťať `~/nazov-odkazu`. Alebo si môžete pridať aliasy do `.bashrc` alebo hocičo podobné.
 
+Na **Mac OS** by to malo fungovať s trochou búchania kladivom. Správny program na meranie času sa dá nainštalovať pomocou `brew install gnu-time --with-default-names`, potom treba buď spraviť alias, alebo zmeniť cestu v `common/commands.py:time_cmd`. Ak bude veľký záujem, nakódim lepšiu podporu pre Mac OS.
+Aktuálne nepodrporujeme **Windows**, ale môžete sa pokúsiť to rozbehať. 
 
 # input-sample
 Tento skript dostane na vstupe (alebo ako argument) zadanie príkladu. Vyrobí (defaultne v priečinku `./test`) sample vstupy a sample výstupy pre tento príklad.
