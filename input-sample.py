@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # (c) 2014 jano <janoh@ksp.sk>
 # Script that creates sample inputs from task statements or vice versa
 description = '''
