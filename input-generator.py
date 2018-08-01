@@ -10,7 +10,7 @@ options = [
     'indir', 'inext',
     'compile', 'execute', 'gencmd',
     'colorful', 'quiet',
-    'clearinput', 'clearbin',
+    'clearinput', 'clearbin', 'cleanup',
     'description',
 ]
 
@@ -26,7 +26,23 @@ parser = Parser(description, options)
 args = parser.parse()
 Color.setup(args)
 
-if args.description:
+filestoclear = os.listdir(args.indir)
+if len(filestoclear) and args.clearinput:
+    infob("Cleaning directory '%s:'" % args.indir)
+    # delete only following files
+    exttodel = ['in', 'out', 'temp', args.inext]
+    for file in filestoclear:
+        if file.endswith(args.inext) and 'sample' in file:
+            info("  ommiting file '%s'" % file)
+        elif file.rsplit('.',1)[-1] not in exttodel:
+            info("  not deleting file '%s'" % file)
+        else:
+            os.remove('%s/%s' % (args.indir, file))
+
+if args.cleanup:
+    infob('Done')
+    exit(0)
+elif args.description:
     recipe = Recipe(open(args.description, 'r'))
 else:
     recipe = Recipe(sys.stdin)
@@ -48,36 +64,17 @@ for p in sorted(programs):
     programs[p].prepare()
 # }}}
 
-indir = args.indir
-if not os.path.exists(indir):
-    infob("Creating directory '%s'" % indir)
-    os.makedirs(indir)
-
-filestoclear = os.listdir(indir)
-if len(filestoclear) and args.clearinput:
-    infob("Cleaning directory '%s:'" % indir)
-    # delete only following files
-    exttodel = ['in', 'out', 'temp', args.inext]
-    for file in filestoclear:
-        if file.endswith(args.inext) and 'sample' in file:
-            info("  ommiting file '%s'" % file)
-        elif file.rsplit('.',1)[-1] not in exttodel:
-            info("  not deleting file '%s'" % file)
-        else:
-            os.remove('%s/%s' % (indir, file))
-
-
 infob('Generating:')
 recipe.inputs.sort()
 leftw = max([len(i.get_name(ext=args.inext)) for i in recipe.inputs])
 prev = None
 
 for input in recipe.inputs:
-    ifile = input.get_name(path=indir + '/', ext=args.inext)
+    ifile = input.get_name(path=args.indir + '/', ext=args.inext)
     short = ('{:>' + str(leftw) + 's}').format(input.get_name(ext=args.inext))
 
     programs[input.generator or gencmd].generate(
-        ifile, 
+        ifile,
         input.get_generation_text(),
     )
 

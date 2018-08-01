@@ -74,6 +74,8 @@ class Parser:
             help:'dont remove binary files after finishing'}),
         'clearinput' : (('-k', '--keep-inputs'), {dest:'clearinput', action:'store_false',
             help:'dont remove old input files. Samples are never removed'}),
+        'cleanup' : (('-c', '--cleanup'), {dest:'cleanup', action:'store_true',
+            help:'remove everything from INDIR folder, except sample inputs'}),
 
         # what to do
         'programs' : (('programs',), {nargs:'+',
