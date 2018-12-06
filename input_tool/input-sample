@@ -3,10 +3,10 @@
 # Script that creates sample inputs from task statements or vice versa
 description = '''
 Input sample.
-Given task statement, create sample input and output files. 
+Given task statement, create sample input and output files.
 '''
 #TODO Can be used in opposite direction.
-#TODO smart -- detect prefix and multi. 
+#TODO smart -- detect prefix and multi.
 options = [
     'indir', 'outdir',  'inext', 'outext',
     'Colorful',
@@ -14,9 +14,9 @@ options = [
     'task',
 ]
 
-from common.parser import Parser
-from common.recipes import Input, Sample, prepare
-from common.messages import *
+from input_tool.common.parser import Parser
+from input_tool.common.recipes import Input, Sample, prepare
+from input_tool.common.messages import *
 import sys
 
 parser = Parser(description, options)
@@ -56,7 +56,7 @@ def check_line(line):
         if line.rstrip() != line[:-1].rstrip(): tips.append('ws-end')
 
 def check_text(text):
-    if text == '': 
+    if text == '':
         tips.append('empty')
         return
     if text == '\n':
@@ -75,7 +75,7 @@ for line in lines:
         active_lines = ''
         continue
     if line.strip() == '```':
-        if active != None: 
+        if active != None:
             active.append(active_lines)
         active = None
     elif active != None:
@@ -92,7 +92,7 @@ samples = []
 for i in range(len(samples_in)):
     samples.append(
         Sample(samples_in[i], args.indir, args.batchname, i, args.inext),
-    ); 
+    );
     samples.append(
         Sample(samples_out[i], args.outdir, args.batchname, i, args.outext),
     );
