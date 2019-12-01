@@ -53,8 +53,9 @@ ext_pas = ['pas']
 ext_java = ['java']
 ext_py3 = ['py', 'py3']
 ext_py2 = ['py2']
-all_ext = ext_c + ext_pas + ext_java + ext_py3 + ext_py2
-compile_ext = ext_c + ext_pas + ext_java
+ext_rust = ['rs']
+all_ext = ext_c + ext_pas + ext_java + ext_py3 + ext_py2 + ext_rust
+compile_ext = ext_c + ext_pas + ext_java + ext_rust
 script_ext = ext_py3 + ext_py2
 
 
@@ -116,6 +117,9 @@ class Program:  # {{{
             elif self.ext in ext_java:
                 self.compilecmd = 'javac %s' % self.source
                 self.filestoclear.append(self.run_cmd + '.class')
+            elif self.ext in ext_rust:
+                self.compilecmd = 'rustc %s.rs' % self.run_cmd
+                self.filestoclear.append(self.run_cmd)
 
         if not os.access(self.run_cmd, os.X_OK):
             if self.ext in ext_py3:
