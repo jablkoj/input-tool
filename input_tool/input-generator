@@ -14,10 +14,10 @@ options = [
     'description',
 ]
 
-from common.parser import Parser
-from common.recipes import Recipe
-from common.commands import Generator
-from common.messages import *
+from input_tool.common.parser import Parser
+from input_tool.common.recipes import Recipe
+from input_tool.common.commands import Generator
+from input_tool.common.messages import *
 import atexit
 import os
 import sys
@@ -77,7 +77,7 @@ for input in recipe.inputs:
     short = ('{:>' + str(leftw) + 's}').format(input.get_name(ext=args.inext))
 
     programs[input.generator or gencmd].generate(
-        ifile, 
+        ifile,
         input.get_generation_text(),
     )
 

@@ -1,4 +1,4 @@
-### *Novinky (alebo prečo sa oplatí pullnuť)*
+### *Novinky (alebo prečo sa oplatí upgradenuť)*
 
 *23. máj 2018 -- čiastočná podpora pre Mac OS*
 
@@ -25,16 +25,10 @@ Na **Linuxe** je to dosť jednoduché.
   `export CXXFLAGS="-O2 -std=gnu++11 -Wno-unused-result -DDG=1"`   
   aby sa vaše programy spúštali rovnako ako na testovači.
   
-2. Stiahnite si zdrojáky --  
-  `git clone git@github.com:jablkoj/input-tool.git` alebo  
-  `git clone https://github.com/jablkoj/input-tool.git`, ak nemáte konto na githube.  
-  Tento nástroj sa stále vyvíja, takže je fajn
-  raz za čas stiahnuť najnovšiu verziu. Stačí napísať `git pull` a všetko sa stiahne samé.
-
-3. Spustite `./install.sh`. Tento príkaz vytvorí symlinky vo vnútri vášho  `/usr/local/bin`. 
-  Potrebuje na to rootovské práva, takže zadajte heslo, keď sa to spýta. Tento príkaz stačí spraviť raz,
-  **netreba** ho opakovať po update zdrojákov. To je čaro symlinkov.
-  (Alternatívne) Ak nemáte rootovské práva alebo si skripty nechcete inštalovať, môžete si napríklad spraviť symlinky v domovskom priečinku a spúšťať `~/nazov-odkazu`. Alebo si môžete pridať aliasy do `.bashrc` alebo hocičo podobné.
+2. Nainštalujte cez `pip` --  
+  `pip install git+https://github.com/jablkoj/input-tool.git`
+  Tento nástroj sa stále vyvíja, takže je fajn raz za čas stiahnuť najnovšiu
+   verziu. Stačí napísať `pip install -U git+https://github.com/jablkoj/input-tool.git` a všetko sa stiahne samé.
 
 Na **Mac OS** by to malo fungovať s trochou búchania kladivom. Správny program na meranie času sa dá nainštalovať pomocou `brew install gnu-time --with-default-names`, potom treba buď spraviť alias, alebo zmeniť cestu v `common/commands.py:time_cmd`. Ak bude veľký záujem, nakódim lepšiu podporu pre Mac OS.
 Aktuálne nepodrporujeme **Windows**, ale môžete sa pokúsiť to rozbehať. 
