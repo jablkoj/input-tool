@@ -118,7 +118,7 @@ class Program:  # {{{
                 self.compilecmd = 'javac %s' % self.source
                 self.filestoclear.append(self.run_cmd + '.class')
             elif self.ext in ext_rust:
-                self.compilecmd = 'rustc %s.rs' % self.run_cmd
+                self.compilecmd = 'rustc -C opt-level=2 %s.rs' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
 
         if not os.access(self.run_cmd, os.X_OK):
