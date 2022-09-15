@@ -397,7 +397,7 @@ class Checker(Program):  # {{{
             self.diff_cmd(ifile, ofile, tfile),
             shell=True, stderr=se)
         if not result in (0,1):
-            warning('Checker exited with status %s' % checkres)
+            warning('Checker exited with status %s' % result)
         return result
 #}}}
 
