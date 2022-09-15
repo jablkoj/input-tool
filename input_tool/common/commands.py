@@ -222,7 +222,9 @@ class Solution(Program):  # {{{
             if self.statistics['batchresults'][key] == Status.ok:
                 points += 1
                 self.statistics['maxtime'] = max(
-                        self.statistics['maxtime'], max(self.statistics['times'][key]))
+                        self.statistics['maxtime'],
+                        max(map(lambda ts: ts[0], self.statistics['times'][key]))
+                )
         color = Color.score_color(points, maxpoints)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
         colnames = [self.run_cmd, self.statistics['maxtime'], self.statistics['sumtime'],
@@ -230,22 +232,21 @@ class Solution(Program):  # {{{
 
         return table_row(color, colnames, widths, [-1,1,1,1,0])
 
-    def record(self, ifile, status, time):
+    def record(self, ifile, status, times):
         input = ifile.rsplit('/', 1)[1].rsplit('.', 1)[0]
         batch = input if input.endswith('sample') else input.rsplit('.', 1)[0]
         batchresults = self.statistics['batchresults']
         batchresults[batch] = self.updated_status(
             batchresults.get(batch, Status.ok),
             status)
-        time = int(time * 1000)
-        self.statistics['times'][batch].append(time)
-        self.statistics['sumtime'] += time
+        self.statistics['times'][batch].append(tuple(times))
+        self.statistics['sumtime'] += times[0]
         self.statistics['result'] = self.updated_status(
             self.statistics['result'], status)
 
     def time_cmd(self, timefile, timelimit=0):
         timekill = 'timeout %s' % timelimit if timelimit else ''
-        return '/usr/bin/time -f "%s" -o %s -q %s' % ('%U', timefile, timekill)
+        return '/usr/bin/time -f "%s" -a -o %s -q %s' % ('%e %U %S', timefile, timekill)
 
     def run_args(self, ifile):
         return ''
@@ -266,11 +267,13 @@ class Solution(Program):  # {{{
             os.getpid(),
         )
         # run solution
-        usertime = -1
+        run_times = [-1] * 4
         time_cmd = self.time_cmd(timefile, float(args.timelimit))
 
-        cmd = '%s %s %s< %s > %s' % (time_cmd, self.run_cmd,
+        date_cmd = 'date +%%s%%N >> %s' % timefile
+        timed_cmd = '%s %s %s< %s > %s' % (time_cmd, self.run_cmd,
             self.run_args(ifile), ifile, tfile)
+        cmd = '%s; %s; rc=$?; %s; exit $rc' % (date_cmd, timed_cmd, date_cmd)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
             if result == 0:
@@ -282,9 +285,11 @@ class Solution(Program):  # {{{
             else:
                 status = Status.err
             try:
-                usertime = float(open(timefile, 'r').read().strip())
+                with open(timefile, 'r') as tf:
+                    ptime_start, *run_times, ptime_end = map(float, tf.read().split())
+                    run_times = [int((ptime_end - ptime_start) / 1e6)] + run_times
             except:
-                usertime = -0.001
+                run_times = [-1] * 4
                 if status == Status.ok:
                     status = Status.exc
             if status == Status.ok and not isvalidator:
@@ -304,16 +309,16 @@ class Solution(Program):  # {{{
             status = Status.valid
 
         # construct summary
-        self.record(ifile, status, usertime)
+        self.record(ifile, status, run_times)
         run_cmd = ('{:<' + str(Solution.cmd_maxlen) + 's}').format(self.run_cmd)
-        time = '{:6d}'.format(int(usertime * 1000))
+        time = '{:6d}ms [{:5.3f}={:5.2f}+{:5.2f}]'.format(*run_times)
 
         if args.inside_oneline:
             input = ('{:' + str(args.inside_inputmaxlen) + 's}').format(
                 (ifile.rsplit('/', 1)[1]))
-            summary = '%s < %s %sms.' % (run_cmd, input, time)
+            summary = '%s < %s %s' % (run_cmd, input, time)
         else:
-            summary = '    %s  %sms.' % (run_cmd, time)
+            summary = '    %s  %s' % (run_cmd, time)
 
         print(Color.colorize(status, summary), status.colored())
 
