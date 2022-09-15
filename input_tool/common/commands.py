@@ -258,7 +258,7 @@ class Solution(Program):  # {{{
         )
         # run solution
         usertime = -1
-        time_cmd = self.time_cmd(timefile, int(args.timelimit))
+        time_cmd = self.time_cmd(timefile, float(args.timelimit))
 
         cmd = '%s %s %s< %s > %s' % (time_cmd, self.run_cmd,
             self.run_args(ifile), ifile, tfile)
