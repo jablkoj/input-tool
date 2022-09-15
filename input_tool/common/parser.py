@@ -43,6 +43,8 @@ class Parser:
             "       ch_ito $inp $theirs $our," +
             "       test $dir $name $i $o $t," +
             "       (default=diff)"}),
+        'fskip': (('--fskip',), {dest:'fskip', action:'store_true',
+            help:'skip the rest of input files in the same batch after first fail'}),
 
         # running options
         'compile' : (('--no-compile',), {dest:'compile', action:'store_false',

@@ -34,6 +34,7 @@ program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
 import sys
 import os
 import subprocess
+from collections import defaultdict
 from input_tool.common.messages import *
 
 
@@ -201,6 +202,8 @@ class Solution(Program):  # {{{
             'sumtime': 0,
             'batchresults': {},
             'result': Status.ok,
+            'times': defaultdict(list),
+            'failedbatches': set(),
         }
 
     def get_statistics_header(inputs):
@@ -218,6 +221,8 @@ class Solution(Program):  # {{{
             maxpoints += 1
             if self.statistics['batchresults'][key] == Status.ok:
                 points += 1
+                self.statistics['maxtime'] = max(
+                        self.statistics['maxtime'], max(self.statistics['times'][key]))
         color = Color.score_color(points, maxpoints)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
         colnames = [self.run_cmd, self.statistics['maxtime'], self.statistics['sumtime'],
@@ -232,9 +237,9 @@ class Solution(Program):  # {{{
         batchresults[batch] = self.updated_status(
             batchresults.get(batch, Status.ok),
             status)
-        self.statistics['maxtime'] = max(
-            self.statistics['maxtime'], int(time * 1000))
-        self.statistics['sumtime'] += int(time * 1000)
+        time = int(time * 1000)
+        self.statistics['times'][batch].append(time)
+        self.statistics['sumtime'] += time
         self.statistics['result'] = self.updated_status(
             self.statistics['result'], status)
 
@@ -246,6 +251,10 @@ class Solution(Program):  # {{{
         return ''
 
     def run(self, ifile, ofile, tfile, checker, args):
+        batch = os.path.basename(ifile).split('.')[0]
+        if args.fskip and batch in self.statistics['failedbatches']:
+            return
+
         isvalidator = isinstance(self, Validator)
         if not self.ready:
             error('%s not prepared for execution' % self.name)
@@ -289,6 +298,8 @@ class Solution(Program):  # {{{
             if os.path.exists(timefile):
                 os.remove(timefile)
 
+        if status is not Status.ok:
+            self.statistics['failedbatches'].add(batch)
         if isvalidator and (status in (Status.ok, Status.wa)):
             status = Status.valid
 
