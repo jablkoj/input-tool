@@ -33,6 +33,7 @@ program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
 
 import sys
 import os
+import shutil
 import subprocess
 from collections import defaultdict
 from input_tool.common.messages import *
@@ -116,8 +117,14 @@ class Program:  # {{{
                 self.filestoclear.append(self.run_cmd)
                 self.filestoclear.append(self.run_cmd + '.o')
             elif self.ext in ext_java:
-                self.compilecmd = 'javac %s' % self.source
-                self.filestoclear.append(self.run_cmd + '.class')
+                class_dir = '.classdir-%s-%s.tmp' % (
+                    to_base_alnum(self.name),
+                    os.getpid(),
+                )
+                os.mkdir(class_dir)
+                self.compilecmd = 'javac %s -d %s' % (self.source, class_dir)
+                self.filestoclear.append(class_dir)
+                self.run_cmd = '-cp %s %s' % (class_dir, self.run_cmd)
             elif self.ext in ext_rust:
                 self.compilecmd = 'rustc -C opt-level=2 %s.rs' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
@@ -153,7 +160,10 @@ class Program:  # {{{
     def clear_files(self):
         for f in self.filestoclear:
             if os.path.exists(f):
-                os.remove(f)
+                if os.path.isdir(f):
+                    shutil.rmtree(f)
+                else:
+                    os.remove(f)
             else:
                 warning('Not found %s' % f)
 
