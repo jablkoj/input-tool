@@ -109,7 +109,7 @@ class Program:  # {{{
         )
         if docompile:
             if self.ext in ext_c:
-                self.compilecmd = 'make %s' % self.run_cmd
+                self.compilecmd = 'CXXFLAGS="$CXXFLAGS -O2" make %s' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
             elif self.ext in ext_pas:
                 self.compilecmd = 'fpc -o%s %s' % (self.run_cmd, self.source)
