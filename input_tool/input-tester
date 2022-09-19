@@ -9,7 +9,7 @@ By default, automatically decide, how to compile and run solution.
 '''
 options = [
     'indir', 'outdir', 'inext', 'outext', 'tempext', 'reset',
-    'timelimit', 'diffcmd',
+    'timelimit', 'memorylimit', 'diffcmd',
     'compile', 'execute', 'sort',
     'colorful', 'colortest', 'quiet', 'stats',
     'cleartemp', 'clearbin',

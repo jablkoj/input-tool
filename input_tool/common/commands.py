@@ -272,10 +272,24 @@ class Solution(Program):  # {{{
             if e in exts:
                 timelimit = float(t)
         return timelimit
+    
+    def get_exec_cmd(self, ifile, tfile, timelimit=0, memorylimit=0):
+        timefile = '.temptime-%s-%s-%s.tmp' % (
+            to_base_alnum(self.name),
+            to_base_alnum(ifile),
+            os.getpid(),
+        )
 
-    def time_cmd(self, timefile, timelimit=0):
-        timekill = 'timeout %s' % timelimit if timelimit else ''
-        return '/usr/bin/time -f "%s" -a -o %s -q %s' % ('%e %U %S', timefile, timekill)
+        memorylimit = int(memorylimit * 1024) if memorylimit else 'unlimited'
+        ulimit_cmd = 'ulimit -m %s -s %s' % (memorylimit, memorylimit)
+        timelimit_cmd = 'timeout %s' % timelimit if timelimit else ''
+        time_cmd = '/usr/bin/time -f "%s" -a -o %s -q' % ('%e %U %S', timefile)
+        date_cmd = 'date +%%s%%N >>%s' % timefile
+        prog_cmd = '%s %s <%s >%s' % (self.run_cmd, self.run_args(ifile), ifile, tfile)
+        cmd = '%s; %s; %s %s %s; rc=$?; %s; exit $rc' % \
+            (ulimit_cmd, date_cmd, time_cmd, timelimit_cmd, prog_cmd, date_cmd)
+        return timefile, cmd
+
 
     def run_args(self, ifile):
         return ''
@@ -290,19 +304,11 @@ class Solution(Program):  # {{{
             error('%s not prepared for execution' % self.name)
         so = subprocess.PIPE if self.quiet else None
         se = subprocess.PIPE if self.quiet else None
-        timefile = '.temptime-%s-%s-%s.tmp' % (
-            to_base_alnum(self.name),
-            to_base_alnum(ifile),
-            os.getpid(),
-        )
+
         # run solution
         run_times = [-1] * 4
-        time_cmd = self.time_cmd(timefile, float(self.get_timelimit(args)))
-
-        date_cmd = 'date +%%s%%N >> %s' % timefile
-        timed_cmd = '%s %s %s< %s > %s' % (time_cmd, self.run_cmd,
-            self.run_args(ifile), ifile, tfile)
-        cmd = '%s; %s; rc=$?; %s; exit $rc' % (date_cmd, timed_cmd, date_cmd)
+        timelimit, memorylimit = float(self.get_timelimit(args)), float(args.memorylimit)
+        timefile, cmd = self.get_exec_cmd(ifile, tfile, timelimit, memorylimit)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
             if result == 0:
