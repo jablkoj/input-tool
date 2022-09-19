@@ -258,6 +258,20 @@ class Solution(Program):  # {{{
         self.statistics['sumtime'] += times[0]
         self.statistics['result'] = self.updated_status(
             self.statistics['result'], status)
+    
+    def get_timelimit(self, args):
+        parts = args.timelimit.split(',')
+        timelimit = float(parts[0])
+        exts = [self.ext]
+        for eg in ext_groups:
+            if self.ext in eg:
+                exts = eg
+                break
+        for p in parts[1:]:
+            e, t = p.split("=")
+            if e in exts:
+                timelimit = float(t)
+        return timelimit
 
     def time_cmd(self, timefile, timelimit=0):
         timekill = 'timeout %s' % timelimit if timelimit else ''
@@ -283,7 +297,7 @@ class Solution(Program):  # {{{
         )
         # run solution
         run_times = [-1] * 4
-        time_cmd = self.time_cmd(timefile, float(args.timelimit))
+        time_cmd = self.time_cmd(timefile, float(self.get_timelimit(args)))
 
         date_cmd = 'date +%%s%%N >> %s' % timefile
         timed_cmd = '%s %s %s< %s > %s' % (time_cmd, self.run_cmd,
