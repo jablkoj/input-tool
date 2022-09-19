@@ -140,7 +140,7 @@ class Program:  # {{{
             if self.ext in ext_py2:
                 self.run_cmd = 'python2 ' + self.source
             if self.ext in ext_java:
-                self.run_cmd = 'java ' + self.run_cmd
+                self.run_cmd = 'java -Xss256m ' + self.run_cmd
 
     def prepare(self):
         if self.compilecmd != None:
