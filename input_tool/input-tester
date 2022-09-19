@@ -13,7 +13,7 @@ options = [
     'compile', 'execute', 'sort',
     'colorful', 'colortest', 'quiet', 'stats',
     'cleartemp', 'clearbin',
-    'programs', 'fskip'
+    'programs', 'fskip', 'dupprog'
 ]
 
 from input_tool.common.parser import Parser
@@ -29,6 +29,9 @@ if args.colortest:
     quit(0)
 
 Color.setup(args)
+
+if not args.dupprog:
+    args.programs = list(dict.fromkeys(args.programs))
 
 # {{{ ------------ prepare programs ------------------
 solutions = []

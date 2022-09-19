@@ -45,6 +45,8 @@ class Parser:
             "       (default=diff)"}),
         'fskip': (('--fskip',), {dest:'fskip', action:'store_true',
             help:'skip the rest of input files in the same batch after first fail'}),
+        'dupprog': (('--dupprog',), {dest:'dupprog', action:'store_true',
+            help:'keep duplicate programs'}),
 
         # running options
         'compile' : (('--no-compile',), {dest:'compile', action:'store_false',
