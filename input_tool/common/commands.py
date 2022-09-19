@@ -50,14 +50,16 @@ def to_base_alnum(s):
     return ''.join([x for x in s if str.isalnum(x)])
 
 
-ext_c = ['cpp', 'cc', 'c']
+ext_c = ['c']
+ext_cpp = ['cpp', 'cxx', 'c++', 'cp', 'cc']
 ext_pas = ['pas']
 ext_java = ['java']
 ext_py3 = ['py', 'py3']
 ext_py2 = ['py2']
 ext_rust = ['rs']
-all_ext = ext_c + ext_pas + ext_java + ext_py3 + ext_py2 + ext_rust
-compile_ext = ext_c + ext_pas + ext_java + ext_rust
+ext_groups = [ext_c, ext_cpp, ext_pas, ext_java, ext_py3, ext_py2, ext_rust]
+all_ext = sum(ext_groups, [])
+compile_ext = ext_c + ext_cpp + ext_pas + ext_java + ext_rust
 script_ext = ext_py3 + ext_py2
 
 
@@ -109,6 +111,9 @@ class Program:  # {{{
         )
         if docompile:
             if self.ext in ext_c:
+                self.compilecmd = 'CFLAGS="$CFLAGS -O2" make %s' % self.run_cmd
+                self.filestoclear.append(self.run_cmd)
+            elif self.ext in ext_cpp:
                 self.compilecmd = 'CXXFLAGS="$CXXFLAGS -O2" make %s' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
             elif self.ext in ext_pas:
