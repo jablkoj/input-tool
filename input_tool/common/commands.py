@@ -198,7 +198,7 @@ class Solution(Program):  # {{{
     def __init__(self, name, args):
         super().__init__(name, args)
         self.statistics = {
-            'maxtime': 0,
+            'maxtime': -1,
             'sumtime': 0,
             'batchresults': {},
             'result': Status.ok,
@@ -340,7 +340,12 @@ class Validator(Solution):  # {{{
         return original
 
     def get_statistics(self):
-        color = Color.score_color(self.statistics['result']==Status.valid, 1)
+        for key in self.statistics['batchresults']:
+            self.statistics['maxtime'] = max(
+                self.statistics['maxtime'],
+                max(map(lambda ts: ts[0], self.statistics['times'][key]))
+            )
+        color = Color.score_color(self.statistics['result'] == Status.valid, 1)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
         colnames = [self.run_cmd, self.statistics['maxtime'], self.statistics['sumtime'],
                     '', self.statistics['result']]
