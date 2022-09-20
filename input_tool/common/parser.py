@@ -31,6 +31,9 @@ class Parser:
         'timelimit' : (('-t', '--time'), {dest:'timelimit', default:'0',
             help:'set timelimit (default=infinity), '+
             'can be set in optional per language format (example 1.5,py2=5,cxx=0.5,java=2)'}),
+        'warntimelimit' : (('--wtime',), {dest:'warntimelimit', default:'0',
+            help:'set warn timelimit (default=infinity) which issues warning but does not fail, '+
+            'can be set in optional per language format (example 1.5,py2=5,cxx=0.5,java=2)'}),
         'memorylimit' : (('-m', '--memory'), {dest:'memorylimit',
             help:'set memorylimit (default=infinity)', default:'0'}),
         'wrapper' : (('-w', '--wrapper'), {dest:'wrapper', nargs:'?',

@@ -4,20 +4,48 @@ import sys
 from enum import Enum
 
 class Status(Enum):
-    ok = 0
-    wa = 1
-    tle = 2
-    exc = 3
-    ce = 4 # not used yet
-    err = 5
-    valid = 6
+    ok      = 1, False
+    tok     = 1, True
+    wa      = 2, False
+    twa     = 2, True
+    tle     = 3, None
+    exc     = 4, False
+    texc    = 4, True
+    ce      = 5, None # not used yet
+    err     = 6, None
+    valid   = 7, None
+
+    def __init__(self, id, warntle):
+        self.id = id
+        self.warntle = warntle
+    
+    def __eq__(self, other):
+        return self.id == other.id
+    
+    def __hash__(self) -> int:
+        return super().__hash__()
+
+    def set_warntle(self, state=True):
+        return Status((self.id, None if self.warntle is None else state))
 
     def __str__(self):
-        return self.name.upper()
+        return Status.reprs[self]
 
     def colored(self, end=None):
         return '%s%s%s' % (Color.status[self], self, end or Color.normal)
 
+Status.reprs = {
+    Status.ok:      "OK",
+    Status.tok:     "tOK",
+    Status.wa:      "WA",
+    Status.twa:     "tWA",
+    Status.tle:     "TLE",
+    Status.exc:     "EXC",
+    Status.texc:    "tEXC",
+    Status.ce:      "CE",
+    Status.err:     "ERR",
+    Status.valid:   "VALID",
+}
 
 class Color:
     colorful = False
@@ -62,7 +90,8 @@ _sow = sys.stdout.write
 _sew = sys.stderr.write
 
 _codemap = {
-    'OK': 'green', 'WA': 'red', 'TLE': 'purple', 'EXC': 45, 'CE':'ERR', 'ERR': 41, 'VALID': 'OK',
+    'OK': 'green', 'tOK': 'green', 'WA': 'red', 'tWA': 'red', 'TLE': 'purple',
+    'EXC': 45, 'tEXC': 45, 'CE':'ERR', 'ERR': 41, 'VALID': 'OK',
     'bad': 'red', 'good': 'green', 'ok': 'yellow', 'fine': 'blue', 'error': 'ERR',
     
     'score0': 196, 'score1': 208, 'score2': 226, 'score3': 228, 'score4': 46,

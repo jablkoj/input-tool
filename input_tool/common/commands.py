@@ -256,11 +256,16 @@ class Solution(Program):  # {{{
             status)
         self.statistics['times'][batch].append(tuple(times))
         self.statistics['sumtime'] += times[0]
-        self.statistics['result'] = self.updated_status(
-            self.statistics['result'], status)
-    
-    def get_timelimit(self, args):
-        parts = args.timelimit.split(',')
+
+        old_status = self.statistics['result']
+        new_status = self.updated_status(old_status, status)
+        if old_status == new_status and old_status.warntle is not None:
+            new_status = new_status.set_warntle(old_status.warntle | status.warntle)
+        self.statistics['result'] = new_status
+
+
+    def get_timelimit(self, timelimits):
+        parts = timelimits.split(',')
         timelimit = float(parts[0])
         exts = [self.ext]
         for eg in ext_groups:
@@ -307,7 +312,7 @@ class Solution(Program):  # {{{
 
         # run solution
         run_times = [-1] * 4
-        timelimit, memorylimit = float(self.get_timelimit(args)), float(args.memorylimit)
+        timelimit, memorylimit = map(float, (self.get_timelimit(args.timelimit), args.memorylimit))
         timefile, cmd = self.get_exec_cmd(ifile, tfile, timelimit, memorylimit)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
@@ -342,6 +347,9 @@ class Solution(Program):  # {{{
             self.statistics['failedbatches'].add(batch)
         if isvalidator and (status in (Status.ok, Status.wa)):
             status = Status.valid
+
+        warntle = float(self.get_timelimit(args.warntimelimit)) * 1000
+        status = status.set_warntle(not isvalidator and warntle != 0 and run_times[0] >= warntle)
 
         # construct summary
         self.record(ifile, status, run_times)
