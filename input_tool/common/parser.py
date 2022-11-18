@@ -60,6 +60,8 @@ class Parser:
         'execute' : (('-x', '--execute'), {dest:'execute', action:'store_true',
             help:'treat programs as bash commands. Dont try to do something smart '+
                   'as compiling'}),
+        'pythoncmd' : (('--pythoncmd',), {dest:'pythoncmd', default:'python',
+            help:'what command is used to execute python, e.g. python or pypy'}),
 
         # verbosing
         'colorful' : (('-b', '--boring'), {dest:'colorful',

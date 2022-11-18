@@ -61,6 +61,7 @@ all_ext = sum(ext_groups, [])
 compile_ext = ext_c + ext_cpp + ext_pas + ext_java + ext_rust
 script_ext = ext_py3 + ext_py2
 
+python_exec = ['python']
 
 class Program:  # {{{
 
@@ -135,9 +136,9 @@ class Program:  # {{{
 
         if not os.access(self.run_cmd, os.X_OK):
             if self.ext in ext_py3:
-                self.run_cmd = 'python3 ' + self.source
+                self.run_cmd = '%s3 %s' % (python_exec[0], self.source)
             if self.ext in ext_py2:
-                self.run_cmd = 'python2 ' + self.source
+                self.run_cmd = '%s2 %s' % (python_exec[0], self.source)
             if self.ext in ext_java:
                 self.run_cmd = 'java -Xss256m ' + self.run_cmd
 
