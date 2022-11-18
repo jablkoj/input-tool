@@ -1,5 +1,5 @@
 # (c) 2014 jano <janoh@ksp.sk>
-import argparse, sys
+import argparse
 
 class Parser:
     dest = 'dest'

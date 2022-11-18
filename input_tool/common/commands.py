@@ -31,7 +31,6 @@ program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
 
 '''
 
-import sys
 import os
 import shutil
 import subprocess

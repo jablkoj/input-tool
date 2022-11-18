@@ -4,7 +4,7 @@
 description = '''
 Input tester.
 Test all given solutions on all inputs.
-By default, if outputs dont exits, use the first solution to generate them.
+By default, if outputs don't exits, use the first solution to generate them.
 By default, automatically decide, how to compile and run solution.
 '''
 options = [
