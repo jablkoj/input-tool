@@ -48,18 +48,18 @@ def to_base_alnum(s):
     s = s.split('/')[-1]
     return ''.join([x for x in s if str.isalnum(x)])
 
-
-ext_c = ['c']
-ext_cpp = ['cpp', 'cxx', 'c++', 'cp', 'cc']
-ext_pas = ['pas']
-ext_java = ['java']
-ext_py3 = ['py', 'py3']
-ext_py2 = ['py2']
-ext_rust = ['rs']
-ext_groups = [ext_c, ext_cpp, ext_pas, ext_java, ext_py3, ext_py2, ext_rust]
-all_ext = sum(ext_groups, [])
-compile_ext = ext_c + ext_cpp + ext_pas + ext_java + ext_rust
-script_ext = ext_py3 + ext_py2
+EXT = {
+    'c': ['c'],
+    'cpp': ['cpp', 'cxx', 'c++', 'cp', 'cc'],
+    'pas': ['pas'],
+    'java': ['java'],
+    'py3': ['py', 'py3'],
+    'py2': ['py2'],
+    'rust': ['rs'],
+}
+ext_all = sum(EXT.values(), [])
+ext_compile = EXT['c'] + EXT['cpp'] + EXT['pas'] + EXT['java'] + EXT['rust']
+ext_script = EXT['py3'] + EXT['py2']
 
 python_exec = ['python']
 
@@ -85,7 +85,7 @@ class Program:  # {{{
 
         # compute source, binary and extension
         if not '.' in name:
-            for ext in all_ext:
+            for ext in ext_all:
                 if os.path.exists(name + '.' + ext):
                     self.source = name + '.' + ext
                     self.ext = ext
@@ -94,34 +94,33 @@ class Program:  # {{{
             self.source = name
             self.run_cmd, self.ext = name.rsplit('.', 1)
 
-        if not self.ext in all_ext:
+        if not self.ext in ext_all:
             self.run_cmd = name
             return
 
         # compute run_cmd
-        if self.ext in script_ext:
+        if self.ext in ext_script:
             self.run_cmd = self.source
 
         docompile = (
             self.cancompile and
-            (self.ext in compile_ext) and
+            (self.ext in ext_compile) and
             (self.source == name or
             not os.path.exists(self.run_cmd) or
             is_file_newer(self.source, self.run_cmd))
         )
         if docompile:
-            if self.ext in ext_c:
+            if self.ext in EXT['c']:
                 self.compilecmd = 'CFLAGS="$CFLAGS -O2" make %s' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
-            elif self.ext in ext_cpp:
+            elif self.ext in EXT['cpp']:
                 self.compilecmd = 'CXXFLAGS="$CXXFLAGS -O2" make %s' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
-            elif self.ext in ext_pas:
+            elif self.ext in EXT['pas']:
                 self.compilecmd = 'fpc -o%s %s' % (self.run_cmd, self.source)
-                self.run_cmd = self.run_cmd
                 self.filestoclear.append(self.run_cmd)
                 self.filestoclear.append(self.run_cmd + '.o')
-            elif self.ext in ext_java:
+            elif self.ext in EXT['java']:
                 class_dir = '.classdir-%s-%s.tmp' % (
                     to_base_alnum(self.name),
                     os.getpid(),
@@ -130,16 +129,16 @@ class Program:  # {{{
                 self.compilecmd = 'javac %s -d %s' % (self.source, class_dir)
                 self.filestoclear.append(class_dir)
                 self.run_cmd = '-cp %s %s' % (class_dir, self.run_cmd)
-            elif self.ext in ext_rust:
+            elif self.ext in EXT['rust']:
                 self.compilecmd = 'rustc -C opt-level=2 %s.rs' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
 
         if not os.access(self.run_cmd, os.X_OK):
-            if self.ext in ext_py3:
+            if self.ext in EXT['py3']:
                 self.run_cmd = '%s3 %s' % (python_exec[0], self.source)
-            if self.ext in ext_py2:
+            if self.ext in EXT['py2']:
                 self.run_cmd = '%s2 %s' % (python_exec[0], self.source)
-            if self.ext in ext_java:
+            if self.ext in EXT['java']:
                 self.run_cmd = 'java -Xss256m ' + self.run_cmd
 
     def prepare(self):
@@ -259,7 +258,7 @@ class Solution(Program):  # {{{
 
         old_status = self.statistics['result']
         new_status = self.updated_status(old_status, status)
-        if old_status == new_status and old_status.warntle is not None:
+        if old_status == new_status == status and status.warntle is not None:
             new_status = new_status.set_warntle(old_status.warntle | status.warntle)
         self.statistics['result'] = new_status
 
@@ -268,7 +267,7 @@ class Solution(Program):  # {{{
         parts = timelimits.split(',')
         timelimit = float(parts[0])
         exts = [self.ext]
-        for eg in ext_groups:
+        for eg in EXT.values():
             if self.ext in eg:
                 exts = eg
                 break
@@ -354,7 +353,7 @@ class Solution(Program):  # {{{
         # construct summary
         self.record(ifile, status, run_times)
         run_cmd = ('{:<' + str(Solution.cmd_maxlen) + 's}').format(self.run_cmd)
-        time = '{:6d}ms [{:5.3f}={:5.2f}+{:5.2f}]'.format(*run_times)
+        time = '{:6d}ms [{:6.2f}={:6.2f}+{:6.2f}]'.format(*run_times)
 
         if args.inside_oneline:
             input = ('{:' + str(args.inside_inputmaxlen) + 's}').format(
