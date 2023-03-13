@@ -11,7 +11,7 @@ options = [
     'indir', 'outdir', 'inext', 'outext', 'tempext', 'reset',
     'timelimit', 'warntimelimit', 'memorylimit', 'diffcmd',
     'compile', 'execute', 'sort',
-    'colorful', 'colortest', 'quiet', 'stats',
+    'colorful', 'colortest', 'quiet', 'stats', 'nostats',
     'cleartemp', 'clearbin',
     'programs', 'fskip', 'dupprog', 'pythoncmd'
 ]

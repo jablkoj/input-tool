@@ -8,6 +8,7 @@ class Parser:
     nargs = 'nargs'
     metavar = 'metavar'
     help = 'help'
+    const = 'const'
     options = {
         # file names
         'indir' : (('-i', '--input'), {dest:'indir', default:'test',
@@ -74,7 +75,9 @@ class Parser:
             help:'dont let subprograms print stuff'}),
         'Quiet' : (('-Q', '--Quiet'), {dest:'Quiet', action:'store_true',
             help:'dont print anything'}),
-        'stats' : (('-s', '--statistics'), {dest:'stats', action:'store_true',
+        'stats' : (('-s', '--statistics'), {dest:'deprecated', action:'append_const',
+            const:'statistics', help:'print statistics (deprecated)'}),
+        'nostats' : (('--no-statistics',), {dest:'stats', action:'store_false',
             help:'print statistics'}),
 
         # cleanup
