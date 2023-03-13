@@ -30,6 +30,10 @@ if args.colortest:
 
 Color.setup(args)
 
+if args.deprecated:
+    for option in args.deprecated:
+        warning("Option '%s' is deprecated." % option)
+
 if not args.dupprog:
     args.programs = list(dict.fromkeys(args.programs))
 

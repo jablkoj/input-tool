@@ -92,7 +92,7 @@ _sew = sys.stderr.write
 _codemap = {
     'OK': 'green', 'tOK': 'green', 'WA': 'red', 'tWA': 'red', 'TLE': 'purple',
     'EXC': 45, 'tEXC': 45, 'CE':'ERR', 'ERR': 41, 'VALID': 'OK',
-    'bad': 'red', 'good': 'green', 'ok': 'yellow', 'fine': 'blue', 'error': 'ERR',
+    'bad': 'yellow', 'good': 'green', 'ok': 'yellow', 'fine': 'blue', 'error': 'ERR',
     
     'score0': 196, 'score1': 208, 'score2': 226, 'score3': 228, 'score4': 46,
     
