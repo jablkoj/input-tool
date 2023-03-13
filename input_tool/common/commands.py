@@ -285,7 +285,7 @@ class Solution(Program):  # {{{
         )
 
         memorylimit = int(memorylimit * 1024) if memorylimit else 'unlimited'
-        ulimit_cmd = 'ulimit -m %s -s %s' % (memorylimit, memorylimit)
+        ulimit_cmd = 'ulimit -m %s; ulimit -s %s' % (memorylimit, memorylimit)
         timelimit_cmd = 'timeout %s' % timelimit if timelimit else ''
         time_cmd = '/usr/bin/time -f "%s" -a -o %s -q' % ('%e %U %S', timefile)
         date_cmd = 'date +%%s%%N >>%s' % timefile
