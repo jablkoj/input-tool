@@ -29,11 +29,12 @@ class Parser:
             help:'force batch (always print .a before extension)'}),
 
         # testing options
-        'timelimit' : (('-t', '--time'), {dest:'timelimit', default:'0',
-            help:'set timelimit (default=infinity), '+
-            'can be set in optional per language format (example 1.5,py2=5,cxx=0.5,java=2)'}),
+        'timelimit' : (('-t', '--time'), {dest:'timelimit', default:'3,cpp=1,py=3',
+            help:'set timelimit (default=3,cpp=1,py=3), ' +
+            'can be set to unlimited using 0 and ' + 
+            'optionally in per language format (example 1.5,py2=5,cxx=0.5,java=2)'}),
         'warntimelimit' : (('--wtime',), {dest:'warntimelimit', default:'0',
-            help:'set warn timelimit (default=infinity) which issues warning but does not fail, '+
+            help:'set warn timelimit (default=infinity) which issues warning but does not fail, ' +
             'can be set in optional per language format (example 1.5,py2=5,cxx=0.5,java=2)'}),
         'memorylimit' : (('-m', '--memory'), {dest:'memorylimit',
             help:'set memorylimit (default=infinity)', default:'0'}),
@@ -48,8 +49,8 @@ class Parser:
             "       ch_ito $inp $theirs $our," +
             "       test $dir $name $i $o $t," +
             "       (default=diff)"}),
-        'fskip': (('--fskip',), {dest:'fskip', action:'store_true',
-            help:'skip the rest of input files in the same batch after first fail'}),
+        'fskip': (('--no-fskip',), {dest:'fskip', action:'store_false',
+            help:'do not skip the rest of input files in the same batch after first fail'}),
         'dupprog': (('--dupprog',), {dest:'dupprog', action:'store_true',
             help:'keep duplicate programs'}),
 
