@@ -20,6 +20,7 @@ from input_tool.common.parser import Parser
 from input_tool.common.commands import Solution, Validator, Checker
 from input_tool.common.messages import *
 import atexit
+import itertools
 import os
 
 parser = Parser(description, options)
@@ -40,13 +41,41 @@ if not args.dupprog:
 python_exec[0] = args.pythoncmd
 
 # {{{ ------------ prepare programs ------------------
+
+
+def get_relevant_prog_files_in_directory(directory):
+    return [
+        de.path
+        for de in os.scandir(directory)
+        if de.is_file()
+        and any(cl.filename_befits(de.name) for cl in (Solution, Validator, Checker))
+    ]
+
+
 solutions = []
-checker = Checker(args.diffcmd, args)
-for p in args.programs:
-    if Validator.is_validator(p):
+checker = []
+files = itertools.chain.from_iterable(
+    get_relevant_prog_files_in_directory(p) if os.path.isdir(p) else [p]
+    for p in args.programs
+)
+for p in files:
+    if Validator.filename_befits(p):
         solutions.append(Validator(p, args))
+    elif Checker.filename_befits(p):
+        checker.append(p)
     else:
         solutions.append(Solution(p, args))
+if args.diffcmd is not None:
+    checker = [args.diffcmd]
+if not checker:
+    checker.append('diff')
+if len(checker) > 1:
+    error(
+        f"More than one checker found {checker}.\n" +
+        "Set explicitly with -d/--diffcmd (e.g. -d diff) " +
+        "or leave only one checker in the directory."
+    )
+checker = Checker(checker[0], args)
 if args.sort:
     solutions.sort()
 programs = [checker]

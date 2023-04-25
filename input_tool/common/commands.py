@@ -186,6 +186,10 @@ class Program:  # {{{
 class Solution(Program):  # {{{
     cmd_maxlen = len('Solution')
 
+    @staticmethod
+    def filename_befits(filename):
+        return to_base_alnum(filename).startswith("sol")
+
     def updated_status(self, original, new):
         if original == Status.ok:
             return new
@@ -220,6 +224,7 @@ class Solution(Program):  # {{{
             'failedbatches': set(),
         }
 
+    @staticmethod
     def get_statistics_header(inputs):
         batches = set([x.rsplit('.', 2)[0] for x in inputs if not 'sample' in x])
         pts = len(batches)
@@ -371,8 +376,9 @@ class Solution(Program):  # {{{
 
 class Validator(Solution):  # {{{
 
-    def is_validator(filename):
-        return filename.startswith('val');
+    @staticmethod
+    def filename_befits(filename):
+        return to_base_alnum(filename).startswith("val")
 
     def compare_mask(self):
         return (-2, self.name)
@@ -411,6 +417,15 @@ class Validator(Solution):  # {{{
 
 class Checker(Program):  # {{{
 
+    @staticmethod
+    def filename_befits(filename):
+        filename = to_base_alnum(filename)
+        prefixes = ["diff", "check", "chito", "test"]
+        for prefix in prefixes:
+            if filename.startswith(prefix):
+                return prefix
+        return None
+
     def compare_mask(self):
         return (-3, self.name)
 
@@ -428,9 +443,9 @@ class Checker(Program):  # {{{
             'chito': ' %s %s %s > /dev/null' % (ifile, tfile, ofile),
             'test': ' %s %s %s %s %s' % ('./', './', ifile, ofile, tfile),
         }
-        for key in diff_map:
-            if to_base_alnum(self.name).startswith(key):
-                return self.run_cmd + diff_map[key]
+        prefix = self.filename_befits(self.name)
+        if prefix:
+            return self.run_cmd + diff_map[prefix]
         return None
 
     def check(self, ifile, ofile, tfile):

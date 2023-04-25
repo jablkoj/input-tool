@@ -41,7 +41,7 @@ class Parser:
         'wrapper' : (('-w', '--wrapper'), {dest:'wrapper', nargs:'?',
             default:False, metavar:'PATH',
             help:'use wrapper, default PATH="$WRAPPER"'}),
-        'diffcmd' : (('-d', '--diff'), {dest:'diffcmd', default:'diff',
+        'diffcmd' : (('-d', '--diff'), {dest:'diffcmd', default: None,
             help:'program which checks correctness of output. '+
             'Arguments given to program depends of prefix: '+
             "       diff $our $theirs," +
