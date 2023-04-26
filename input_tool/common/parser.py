@@ -29,41 +29,40 @@ class Parser:
             help:'force batch (always print .a before extension)'}),
 
         # testing options
-        'timelimit' : (('-t', '--time'), {dest:'timelimit', default:'3,cpp=1,py=3',
-            help:'set timelimit (default=3,cpp=1,py=3), ' +
+        'timelimit' : (('-t', '--time'), {dest:'timelimit', default:'3,cpp=1,py=5',
+            help:'set timelimit (default=3,cpp=1,py=5), ' +
             'can be set to unlimited using 0 and ' + 
-            'optionally in per language format (example 1.5,py2=5,cxx=0.5,java=2)'}),
+            'optionally in per language format (e.g. "1.5,py2=0,cpp=0.5)"'}),
         'warntimelimit' : (('--wtime',), {dest:'warntimelimit', default:'0',
             help:'set warn timelimit (default=infinity) which issues warning but does not fail, ' +
-            'can be set in optional per language format (example 1.5,py2=5,cxx=0.5,java=2)'}),
+            'can be set in optional per language format (e.g. "1.5,py2=0,cpp=0.5)'}),
         'memorylimit' : (('-m', '--memory'), {dest:'memorylimit',
             help:'set memorylimit (default=infinity)', default:'0'}),
         'wrapper' : (('-w', '--wrapper'), {dest:'wrapper', nargs:'?',
             default:False, metavar:'PATH',
             help:'use wrapper, default PATH="$WRAPPER"'}),
         'diffcmd' : (('-d', '--diff'), {dest:'diffcmd', default: None,
-            help:'program which checks correctness of output. '+
-            'Arguments given to program depends of prefix: '+
+            help:'program which checks correctness of output (default=diff), '+
+            'arguments given to program depends of prefix: '+
             "       diff $our $theirs," +
             "       check $inp $our $theirs," +
             "       ch_ito $inp $theirs $our," +
-            "       test $dir $name $i $o $t," +
-            "       (default=diff)"}),
+            "       test $dir $name $i $o $t"}),
         'fskip': (('--no-fskip',), {dest:'fskip', action:'store_false',
-            help:'do not skip the rest of input files in the same batch after first fail'}),
+            help:'dont skip the rest of input files in the same batch after first fail'}),
         'dupprog': (('--dupprog',), {dest:'dupprog', action:'store_true',
             help:'keep duplicate programs'}),
 
         # running options
         'compile' : (('--no-compile',), {dest:'compile', action:'store_false',
-            help:'do not try to compile'}),
+            help:'dont try to compile'}),
         'sort' : (('--no-sort',), {dest:'sort', action:'store_false',
-            help:'do not change order of programs'}),
+            help:'dont change order of programs'}),
         'execute' : (('-x', '--execute'), {dest:'execute', action:'store_true',
             help:'treat programs as bash commands. Dont try to do something smart '+
                   'as compiling'}),
         'pythoncmd' : (('--pythoncmd',), {dest:'pythoncmd', default:'python',
-            help:'what command is used to execute python, e.g. python or pypy'}),
+            help:'what command is used to execute python, e.g. `python` or `pypy`'}),
 
         # verbosing
         'colorful' : (('-b', '--boring'), {dest:'colorful',
@@ -79,7 +78,7 @@ class Parser:
         'stats' : (('-s', '--statistics'), {dest:'deprecated', action:'append_const',
             const:'statistics', help:'print statistics (deprecated)'}),
         'nostats' : (('--no-statistics',), {dest:'stats', action:'store_false',
-            help:'print statistics'}),
+            help:'dont print statistics'}),
 
         # cleanup
         'cleartemp' : (('-k', '--keep-temp'), {dest:'cleartemp', action:'store_false',

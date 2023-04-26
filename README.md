@@ -1,4 +1,61 @@
+## Zmeny voči jablkoj
+
+- **Podpora priečinkov v zozname programov** (automatické načítanie všetkých riešení, validátorov a checkera z priečinku)
+- Časovanie
+  - Desatinný timelimit `-t 0.5`
+  - **Jazykový timelimit** `-t "3,cpp=1,py=5"`
+  - Detailnejšie vypisovanie trvania programov
+    - **Milisekundová presnosť**
+    - Zobrazovanie celkového času namiesto *User time*
+    - Vypisovanie *User/System/Total time*
+    - TLE čas sa neráta do `Max time`
+  - Varovný timelimit pomocou `--wtime`
+- Lepšie predvolené nastavenia
+  - **Preskakovanie zvyšných vstupov** v sade po odmietnutí (vypnúť cez `--no-fskip`)
+  - Štatistiky po vyhodnotení (vypnúť cez `--no-statistics`)
+  - **Optimalizované C++**
+  - Zvýšené limity pre pamäť a zásobník
+  - Deduplikovanie programov na vstupe (vypnúť cez `--dupprog`)
+- Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd` 
+- Kompilovanie Java riešení v dočasnom priečinku
+- Bugfixes
+
+## Rýchlokurz
+
+```
+# napiseme si riesenia, generator, idf.txt
+input-sample zadanie.md # nepovinne
+input-generator idf.txt
+input-tester .
+```
+
+### Užitočné prepínače
+
+```
+input-tester:
+  -h, --help
+    show this help message and exit
+  -t TIMELIMIT, --time TIMELIMIT
+    set timelimit (default=3,cpp=1,py=5),
+    can be set to unlimited using 0 and optionally in per language format (example "2,py2=0,cxx=0.5")
+  --no-fskip
+    dont skip the rest of input files in the same batch after first fail
+  -R, --Reset
+    recompute outputs
+  -K --keep-bin
+    dont remove binary files after finishing
+  -d --diff
+    program which checks correctness of output (default=diff),
+    arguments given to program depends of prefix: diff $our $theirs, check $inp $our $theirs
+  --pythoncmd
+    what command is used to execute python, e.g. `python` or `pypy`
+```
+
 ### *Novinky (alebo prečo sa oplatí upgradenuť)*
+<details>
+<summary>Novinky</summary>
+
+*2022- -- viď vyššie*
 
 *23. máj 2018 -- čiastočná podpora pre Mac OS*
 
@@ -9,6 +66,8 @@
 *23. január 2017 -- pridaný skript input-sample na výrobu sample vstupov so zadania*
 
 *28. január 2017 -- trocha dokončené špeciálne fičúry IDF, spísanie návodu do ADVANCED-IDF.md*
+
+</details>
 
 # input-tool
 Nástroj, ktorý výrazne zjednodušuje vytváranie a testovanie vstupov pre súťažné programátorské príklady. 
@@ -25,10 +84,19 @@ Na **Linuxe** je to dosť jednoduché.
   `export CXXFLAGS="-O2 -std=gnu++11 -Wno-unused-result -DDG=1"`   
   aby sa vaše programy spúštali rovnako ako na testovači.
   
-2. Nainštalujte cez `pip` --  
-  `pip install git+https://github.com/jablkoj/input-tool.git`
-  Tento nástroj sa stále vyvíja, takže je fajn raz za čas stiahnuť najnovšiu
-   verziu. Stačí napísať `pip install -U git+https://github.com/jablkoj/input-tool.git` a všetko sa stiahne samé.
+2. Nainštalujte cez `pip`:
+  ```
+  pip install git+https://github.com/jablkoj/input-tool.git
+  # alebo
+  git clone git@github.com:jablkoj/input-tool.git
+  pip install -e .
+  ```
+  Aktualizuje sa pomocou:
+  ```
+  pip install -U git+https://github.com/jablkoj/input-tool.git
+  # alebo
+  git pull
+  ```
 
 Na **Mac OS** by to malo fungovať s trochou búchania kladivom. Správny program na meranie času sa dá nainštalovať pomocou `brew install gnu-time --with-default-names`, potom treba buď spraviť alias, alebo zmeniť cestu v `common/commands.py:time_cmd`. Ak bude veľký záujem, nakódim lepšiu podporu pre Mac OS.
 Aktuálne nepodrporujeme **Windows**, ale môžete sa pokúsiť to rozbehať. 
