@@ -468,6 +468,7 @@ class Generator(Program):  # {{{
         cmd = "%s > %s" % (self.run_cmd, ifile)
         p = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
         p.communicate(str.encode(text))
+        return Status.exc if p.returncode else Status.ok
 
 #}}}
 

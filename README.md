@@ -18,6 +18,7 @@
   - Deduplikovanie programov na vstupe (vypnúť cez `--dupprog`)
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd` 
 - Kompilovanie Java riešení v dočasnom priečinku
+- Informovanie o neúspešnom generovaní vstupov
 - Bugfixes
 
 ## Rýchlokurz

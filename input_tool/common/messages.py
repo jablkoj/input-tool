@@ -79,7 +79,8 @@ class Color:
             p += 1
         return Color.scores[p]
 
-    def colorize(status, text, end=None):
+    @staticmethod
+    def colorize(status: Status, text, end=None):
         index = (status in (Status.ok, Status.valid))
         return '%s%s%s' % ((Color.warning, Color.infog)[index],
                             text, 
