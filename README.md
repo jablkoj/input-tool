@@ -87,14 +87,14 @@ Na **Linuxe** je to dosť jednoduché.
   
 2. Nainštalujte cez `pip`:
   ```
-  pip install git+https://github.com/jablkoj/input-tool.git
+  pip install git+https://github.com/fezjo/input-tool.git
   # alebo
-  git clone git@github.com:jablkoj/input-tool.git
+  git clone git@github.com:fezjo/input-tool.git
   pip install -e .
   ```
   Aktualizuje sa pomocou:
   ```
-  pip install -U git+https://github.com/jablkoj/input-tool.git
+  pip install -U git+https://github.com/fezjo/input-tool.git
   # alebo
   git pull
   ```
