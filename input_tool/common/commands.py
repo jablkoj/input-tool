@@ -48,20 +48,45 @@ def to_base_alnum(s):
     s = s.split('/')[-1]
     return ''.join([x for x in s if str.isalnum(x)])
 
-EXT = {
-    'c': ['c'],
-    'cpp': ['cpp', 'cxx', 'c++', 'cp', 'cc'],
-    'pas': ['pas'],
-    'java': ['java'],
-    'py3': ['py', 'py3'],
-    'py2': ['py2'],
-    'rust': ['rs'],
-}
-ext_all = sum(EXT.values(), [])
-ext_compile = EXT['c'] + EXT['cpp'] + EXT['pas'] + EXT['java'] + EXT['rust']
-ext_script = EXT['py3'] + EXT['py2']
+class Langs:
+    class Lang(Enum):
+        unknown = None
+        c = 'c'
+        cpp = 'cpp'
+        pascal = 'pas'
+        java = 'java'
+        python2 = 'py2'
+        python3 = 'py3'
+        rust = 'rs'
 
-python_exec = ['python']
+    lang_compiled = (Lang.c, Lang.cpp, Lang.pascal, Lang.java, Lang.rust)
+    lang_script = (Lang.python2, Lang.python3)
+    lang_all = lang_compiled + lang_script
+
+    ext = {
+        Lang.unknown: [],
+        Lang.c: ['c'],
+        Lang.cpp: ['cpp', 'cxx', 'c++', 'cp', 'cc'],
+        Lang.pascal: ['pas'],
+        Lang.java: ['java'],
+        Lang.python3: ['py', 'py3'],
+        Lang.python2: ['py2'],
+        Lang.rust: ['rs'],
+    }
+
+    @staticmethod
+    def from_ext(ext):
+        for lang in Langs.Lang:
+            if ext in Langs.ext[lang]:
+                return lang
+        return Langs.Lang.unknown
+    
+    @staticmethod
+    def collect_exts(langs):
+        return set(ext for lang in langs for ext in Langs.ext[lang])
+
+class Config:
+    python_exec = 'python'
 
 class Program:  # {{{
 
@@ -78,49 +103,53 @@ class Program:  # {{{
         self.ext = None
         self.run_cmd = name
         self.filestoclear = []
+        self.lang = Langs.Lang.unknown
 
         # if it is final command, dont do anything
         if self.forceexecute or len(name.split()) > 1:
             return
 
         # compute source, binary and extension
+        # TODO: base name can have multiple sources
         if not '.' in name:
-            for ext in ext_all:
-                if os.path.exists(name + '.' + ext):
-                    self.source = name + '.' + ext
+            for ext in Langs.collect_exts(Langs.lang_all):
+                extended = name + '.' + ext
+                if os.path.exists(extended):
+                    self.source = extended
                     self.ext = ext
                     break
         else:
             self.source = name
             self.run_cmd, self.ext = name.rsplit('.', 1)
-
-        if not self.ext in ext_all:
+        
+        self.lang = Langs.from_ext(self.ext)
+        if self.lang is Langs.Lang.unknown:
             self.run_cmd = name
             return
 
         # compute run_cmd
-        if self.ext in ext_script:
+        if self.lang in Langs.lang_script:
             self.run_cmd = self.source
 
         docompile = (
             self.cancompile and
-            (self.ext in ext_compile) and
+            self.lang in Langs.lang_compiled and
             (self.source == name or
             not os.path.exists(self.run_cmd) or
             is_file_newer(self.source, self.run_cmd))
         )
         if docompile:
-            if self.ext in EXT['c']:
+            if self.lang is Langs.Lang.c:
                 self.compilecmd = 'CFLAGS="$CFLAGS -O2" make %s' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
-            elif self.ext in EXT['cpp']:
+            elif self.lang is Langs.Lang.cpp:
                 self.compilecmd = 'CXXFLAGS="$CXXFLAGS -O2" make %s' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
-            elif self.ext in EXT['pas']:
+            elif self.lang is Langs.Lang.pascal:
                 self.compilecmd = 'fpc -o%s %s' % (self.run_cmd, self.source)
                 self.filestoclear.append(self.run_cmd)
                 self.filestoclear.append(self.run_cmd + '.o')
-            elif self.ext in EXT['java']:
+            elif self.lang is Langs.Lang.java:
                 class_dir = '.classdir-%s-%s.tmp' % (
                     to_base_alnum(self.name),
                     os.getpid(),
@@ -129,16 +158,16 @@ class Program:  # {{{
                 self.compilecmd = 'javac %s -d %s' % (self.source, class_dir)
                 self.filestoclear.append(class_dir)
                 self.run_cmd = '-cp %s %s' % (class_dir, self.run_cmd)
-            elif self.ext in EXT['rust']:
+            elif self.lang is Langs.Lang.rust:
                 self.compilecmd = 'rustc -C opt-level=2 %s.rs' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
 
         if not os.access(self.run_cmd, os.X_OK):
-            if self.ext in EXT['py3']:
-                self.run_cmd = '%s3 %s' % (python_exec[0], self.source)
-            if self.ext in EXT['py2']:
-                self.run_cmd = '%s2 %s' % (python_exec[0], self.source)
-            if self.ext in EXT['java']:
+            if self.lang is Langs.Lang.python3:
+                self.run_cmd = '%s3 %s' % (Config.python_exec, self.source)
+            if self.lang is Langs.Lang.python2:
+                self.run_cmd = '%s2 %s' % (Config.python_exec, self.source)
+            if self.lang is Langs.Lang.java:
                 self.run_cmd = 'java -Xss256m ' + self.run_cmd
 
     def prepare(self):
@@ -271,11 +300,7 @@ class Solution(Program):  # {{{
     def get_timelimit(self, timelimits):
         parts = timelimits.split(',')
         timelimit = float(parts[0])
-        exts = [self.ext]
-        for eg in EXT.values():
-            if self.ext in eg:
-                exts = eg
-                break
+        exts = [self.ext] if self.lang is Langs.Lang.unknown else Langs.ext[self.lang]
         for p in parts[1:]:
             e, t = p.split("=")
             if e in exts:
