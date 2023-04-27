@@ -86,6 +86,8 @@ class Langs:
         return set(ext for lang in langs for ext in Langs.ext[lang])
 
 class Config:
+    timelimits = {Langs.Lang.unknown: 0}
+    warn_timelimits = {Langs.Lang.unknown: 0}
     python_exec = 'python'
 
 class Program:  # {{{
@@ -304,14 +306,11 @@ class Solution(Program):  # {{{
 
 
     def get_timelimit(self, timelimits):
-        parts = timelimits.split(',')
-        timelimit = float(parts[0])
-        exts = [self.ext] if self.lang is Langs.Lang.unknown else Langs.ext[self.lang]
-        for p in parts[1:]:
-            e, t = p.split("=")
-            if e in exts:
-                timelimit = float(t)
-        return timelimit
+        if self.ext in timelimits:
+            return timelimits[self.ext]
+        if self.lang in timelimits:
+            return timelimits[self.lang]
+        return timelimits[Langs.Lang.unknown]
     
     def get_exec_cmd(self, ifile, tfile, timelimit=0, memorylimit=0):
         timefile = '.temptime-%s-%s-%s.tmp' % (
@@ -347,7 +346,8 @@ class Solution(Program):  # {{{
 
         # run solution
         run_times = [-1] * 4
-        timelimit, memorylimit = map(float, (self.get_timelimit(args.timelimit), args.memorylimit))
+        timelimit = self.get_timelimit(Config.timelimits)
+        memorylimit = float(args.memorylimit)
         timefile, cmd = self.get_exec_cmd(ifile, tfile, timelimit, memorylimit)
         try:
             result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
@@ -383,7 +383,7 @@ class Solution(Program):  # {{{
         if isvalidator and (status in (Status.ok, Status.wa)):
             status = Status.valid
 
-        warntle = float(self.get_timelimit(args.warntimelimit)) * 1000
+        warntle = self.get_timelimit(Config.warn_timelimits) * 1000
         status = status.set_warntle(not isvalidator and warntle != 0 and run_times[0] >= warntle)
 
         # construct summary

@@ -17,7 +17,7 @@ options = [
 ]
 
 from input_tool.common.parser import Parser
-from input_tool.common.commands import Config, Solution, Validator, Checker
+from input_tool.common.commands import Langs, Config, Solution, Validator, Checker
 from input_tool.common.messages import *
 import atexit
 import itertools
@@ -39,6 +39,18 @@ if not args.dupprog:
     args.programs = list(dict.fromkeys(args.programs))
 
 Config.python_exec = args.pythoncmd
+
+def parse_timelimit(str_timelimit):
+    res = {}
+    for p in str_timelimit.split(','):
+        ext, t = p.split('=') if '=' in p else ("", p)
+        t = float(t)
+        res[ext] = t
+        res[Langs.from_ext(ext)] = t
+    return res
+
+Config.timelimits.update(parse_timelimit(args.timelimit))
+Config.warn_timelimits.update(parse_timelimit(args.warntimelimit))
 
 # {{{ ------------ prepare programs ------------------
 
