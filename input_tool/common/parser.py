@@ -37,7 +37,7 @@ class Parser:
             help:'set warn timelimit (default=infinity) which issues warning but does not fail, ' +
             'can be set in optional per language format (e.g. "1.5,py2=0,cpp=0.5)'}),
         'memorylimit' : (('-m', '--memory'), {dest:'memorylimit',
-            help:'set memorylimit (default=infinity)', default:'0'}),
+            help:'set memorylimit (default=infinity)', default:0, 'type': float}),
         'wrapper' : (('-w', '--wrapper'), {dest:'wrapper', nargs:'?',
             default:False, metavar:'PATH',
             help:'use wrapper, default PATH="$WRAPPER"'}),

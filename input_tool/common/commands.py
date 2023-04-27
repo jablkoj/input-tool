@@ -312,7 +312,7 @@ class Solution(Program):  # {{{
             return timelimits[self.lang]
         return timelimits[Langs.Lang.unknown]
     
-    def get_exec_cmd(self, ifile, tfile, timelimit=0, memorylimit=0):
+    def get_exec_cmd(self, ifile, tfile, timelimit=0, memorylimit=0.0):
         timefile = '.temptime-%s-%s-%s.tmp' % (
             to_base_alnum(self.name),
             to_base_alnum(ifile),
