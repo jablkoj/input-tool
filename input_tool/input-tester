@@ -117,16 +117,15 @@ else:
     infob("Outputs will be regenerated")
 
 
-def get_result_file(out_file, temp_file, isvalidator):
+def get_result_file(out_file, temp_file, isvalidator, force_out=False):
     if isvalidator:
         return temp_file
-    if args.reset:
+    if force_out:
         return out_file
-    if os.path.exists(out_file):
-        return temp_file
-    else:
+    if not os.path.exists(out_file):
         infob("File %s not found. Will be created now." % out_file)
         return out_file
+    return temp_file
 
 
 def temp_clear():
@@ -156,12 +155,16 @@ for input in inputs:
     if len(solutions) > 1:
         print("%s >" % (input))
 
+    generated_output = False
     for sol in solutions:
         result_file = get_result_file(
             output_file,
             temp_file,
             isinstance(sol, Validator),
+            args.reset and not generated_output,
         )
+        if result_file == output_file:
+            generated_output = True
         sol.run(input_file, output_file, result_file, checker, args)
         if (args.cleartemp and output_file != result_file and
             os.path.exists(result_file)):
