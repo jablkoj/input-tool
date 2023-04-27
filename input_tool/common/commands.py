@@ -112,12 +112,18 @@ class Program:  # {{{
         # compute source, binary and extension
         # TODO: base name can have multiple sources
         if not '.' in name:
-            for ext in Langs.collect_exts(Langs.lang_all):
-                extended = name + '.' + ext
-                if os.path.exists(extended):
-                    self.source = extended
-                    self.ext = ext
-                    break
+            valid = []
+            for ext_category in (Langs.lang_compiled, Langs.lang_script):
+                for ext in Langs.collect_exts(ext_category):
+                    if os.path.exists(name + "." + ext):
+                        valid.append(ext)
+            if valid:
+                self.ext = valid[0]
+                self.source = name + "." + self.ext
+                if os.path.exists(name):
+                    valid.append("<noextension>")
+            if len(valid) > 1:
+                warning("Warning: multiple possible sources for %s, using first %s" % (name, valid))
         else:
             self.source = name
             self.run_cmd, self.ext = name.rsplit('.', 1)
