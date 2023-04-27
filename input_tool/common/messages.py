@@ -53,6 +53,7 @@ Status.reprs = {
 class Color:
     colorful = False
 
+    @staticmethod
     def setup(args):
         Color.colorful = args.colorful
         Color.normal = Color("normal")
@@ -76,6 +77,7 @@ class Color:
     def __str__(self):
         return self.code
 
+    @staticmethod
     def score_color(points, maxpoints):
         bounds = [0, 4, 7, 9, 10]
         p = 0

@@ -78,6 +78,7 @@ def check_text(text):
         tips.append("bl-end")
 
 
+active_lines = ""
 for line in lines:
     if line.strip() == "```vstup":
         active = samples_in

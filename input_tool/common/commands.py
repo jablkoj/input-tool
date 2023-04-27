@@ -101,6 +101,7 @@ class Program:
         return self.compare_mask() < other.compare_mask()
 
     def _transform(self):
+        assert self.name
         name = self.name
         self.compilecmd = None
         self.source = None
@@ -144,6 +145,7 @@ class Program:
         if self.lang in Langs.lang_script:
             self.run_cmd = self.source
 
+        assert self.run_cmd
         docompile = (
             self.cancompile
             and self.lang in Langs.lang_compiled
@@ -195,6 +197,7 @@ class Program:
             except:
                 error("Compilation failed.")
 
+        assert self.run_cmd
         if (
             not self.forceexecute
             and os.access(self.run_cmd, os.X_OK)
@@ -499,9 +502,11 @@ class Checker(Program):
 
     def check(self, ifile, ofile, tfile):
         se = subprocess.PIPE if self.quiet else None
-        result = subprocess.call(
-            self.diff_cmd(ifile, ofile, tfile), shell=True, stderr=se
-        )
+        cmd = self.diff_cmd(ifile, ofile, tfile)
+        if cmd is None:
+            error("Unsupported checker %s" % self.name)
+            return Status.err
+        result = subprocess.call(cmd, shell=True, stderr=se)
         if not result in (0, 1):
             warning("Checker exited with status %s" % result)
         return result
