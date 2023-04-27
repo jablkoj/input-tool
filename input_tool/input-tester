@@ -1,19 +1,37 @@
 #!/usr/bin/env python3
 # (c) 2014 jano <janoh@ksp.sk>
 # Complex script that can test solutions
-description = '''
+description = """
 Input tester.
 Test all given solutions on all inputs.
 By default, if outputs don't exits, use the first solution to generate them.
 By default, automatically decide, how to compile and run solution.
-'''
+"""
 options = [
-    'indir', 'outdir', 'inext', 'outext', 'tempext', 'reset',
-    'timelimit', 'warntimelimit', 'memorylimit', 'diffcmd',
-    'compile', 'execute', 'sort',
-    'colorful', 'colortest', 'quiet', 'stats', 'nostats',
-    'cleartemp', 'clearbin',
-    'programs', 'fskip', 'dupprog', 'pythoncmd'
+    "indir",
+    "outdir",
+    "inext",
+    "outext",
+    "tempext",
+    "reset",
+    "timelimit",
+    "warntimelimit",
+    "memorylimit",
+    "diffcmd",
+    "compile",
+    "execute",
+    "sort",
+    "colorful",
+    "colortest",
+    "quiet",
+    "stats",
+    "nostats",
+    "cleartemp",
+    "clearbin",
+    "programs",
+    "fskip",
+    "dupprog",
+    "pythoncmd",
 ]
 
 from input_tool.common.parser import Parser
@@ -40,14 +58,16 @@ if not args.dupprog:
 
 Config.python_exec = args.pythoncmd
 
+
 def parse_timelimit(str_timelimit):
     res = {}
-    for p in str_timelimit.split(','):
-        ext, t = p.split('=') if '=' in p else ("", p)
+    for p in str_timelimit.split(","):
+        ext, t = p.split("=") if "=" in p else ("", p)
         t = float(t)
         res[ext] = t
         res[Langs.from_ext(ext)] = t
     return res
+
 
 Config.timelimits.update(parse_timelimit(args.timelimit))
 Config.warn_timelimits.update(parse_timelimit(args.warntimelimit))
@@ -80,12 +100,12 @@ for p in files:
 if args.diffcmd is not None:
     checker = [args.diffcmd]
 if not checker:
-    checker.append('diff')
+    checker.append("diff")
 if len(checker) > 1:
     error(
-        f"More than one checker found {checker}.\n" +
-        "Set explicitly with -d/--diffcmd (e.g. -d diff) " +
-        "or leave only one checker in the directory."
+        f"More than one checker found {checker}.\n"
+        + "Set explicitly with -d/--diffcmd (e.g. -d diff) "
+        + "or leave only one checker in the directory."
     )
 checker = Checker(checker[0], args)
 if args.sort:
@@ -98,19 +118,19 @@ def cleanup():
     if args.clearbin:
         for p in programs:
             p.clear_files()
+
+
 atexit.register(cleanup)
 
 for p in programs:
     p.prepare()
-#}}}
+# }}}
 # {{{ ------------ prepare inputs ----------------
 
-inputs = sorted(filter(lambda x: x.endswith(args.inext),
-                       os.listdir(args.indir)))
+inputs = sorted(filter(lambda x: x.endswith(args.inext), os.listdir(args.indir)))
 
 if args.outext != args.tempext and not args.reset:
-    outputs = sorted(filter(lambda x: x.endswith(args.outext),
-                            os.listdir(args.outdir)))
+    outputs = sorted(filter(lambda x: x.endswith(args.outext), os.listdir(args.outdir)))
     if len(outputs) > 0 and len(outputs) < len(inputs):
         warning("Incomplete output files.")
 else:
@@ -129,28 +149,28 @@ def get_result_file(out_file, temp_file, isvalidator, force_out=False):
 
 
 def temp_clear():
-    tempfiles = sorted(filter(lambda x: x.endswith(args.tempext),
-                              os.listdir(args.outdir)))
+    tempfiles = sorted(
+        filter(lambda x: x.endswith(args.tempext), os.listdir(args.outdir))
+    )
     if len(tempfiles):
         info("Deleting all .%s files" % args.tempext)
         for tempfile in tempfiles:
-            os.remove(args.outdir + '/' + tempfile)
+            os.remove(args.outdir + "/" + tempfile)
+
 
 temp_clear()
 
-setattr(args, 'inside_oneline', len(solutions) <= 1)
-setattr(args, 'inside_inputmaxlen', max(map(len, inputs)))
+setattr(args, "inside_oneline", len(solutions) <= 1)
+setattr(args, "inside_inputmaxlen", max(map(len, inputs)))
 
-#}}}
+# }}}
 
 # ------------ test solutions ----------------
 
 for input in inputs:
-    input_file = args.indir + '/' + input
-    output_file = args.outdir + '/' + \
-        input.rsplit('.', 1)[0] + '.' + args.outext
-    temp_file = args.outdir + '/' + \
-        input.rsplit('.', 1)[0] + '.' + args.tempext
+    input_file = args.indir + "/" + input
+    output_file = args.outdir + "/" + input.rsplit(".", 1)[0] + "." + args.outext
+    temp_file = args.outdir + "/" + input.rsplit(".", 1)[0] + "." + args.tempext
 
     if len(solutions) > 1:
         print("%s >" % (input))
@@ -166,8 +186,11 @@ for input in inputs:
         if result_file == output_file:
             generated_output = True
         sol.run(input_file, output_file, result_file, checker, args)
-        if (args.cleartemp and output_file != result_file and
-            os.path.exists(result_file)):
+        if (
+            args.cleartemp
+            and output_file != result_file
+            and os.path.exists(result_file)
+        ):
             os.remove(result_file)
 
 # ------------ print sumary ------------------

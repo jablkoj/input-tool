@@ -3,25 +3,26 @@
 import sys
 from enum import Enum
 
+
 class Status(Enum):
-    ok      = 1, False
-    tok     = 1, True
-    wa      = 2, False
-    twa     = 2, True
-    tle     = 3, None
-    exc     = 4, False
-    texc    = 4, True
-    ce      = 5, None # not used yet
-    err     = 6, None
-    valid   = 7, None
+    ok = 1, False
+    tok = 1, True
+    wa = 2, False
+    twa = 2, True
+    tle = 3, None
+    exc = 4, False
+    texc = 4, True
+    ce = 5, None  # not used yet
+    err = 6, None
+    valid = 7, None
 
     def __init__(self, id, warntle):
         self.id = id
         self.warntle = warntle
-    
+
     def __eq__(self, other):
         return self.id == other.id
-    
+
     def __hash__(self) -> int:
         return super().__hash__()
 
@@ -32,48 +33,51 @@ class Status(Enum):
         return Status.reprs[self]
 
     def colored(self, end=None):
-        return '%s%s%s' % (Color.status[self], self, end or Color.normal)
+        return "%s%s%s" % (Color.status[self], self, end or Color.normal)
+
 
 Status.reprs = {
-    Status.ok:      "OK",
-    Status.tok:     "tOK",
-    Status.wa:      "WA",
-    Status.twa:     "tWA",
-    Status.tle:     "TLE",
-    Status.exc:     "EXC",
-    Status.texc:    "tEXC",
-    Status.ce:      "CE",
-    Status.err:     "ERR",
-    Status.valid:   "VALID",
+    Status.ok: "OK",
+    Status.tok: "tOK",
+    Status.wa: "WA",
+    Status.twa: "tWA",
+    Status.tle: "TLE",
+    Status.exc: "EXC",
+    Status.texc: "tEXC",
+    Status.ce: "CE",
+    Status.err: "ERR",
+    Status.valid: "VALID",
 }
+
 
 class Color:
     colorful = False
 
     def setup(args):
         Color.colorful = args.colorful
-        Color.normal = Color('normal')
-        Color.infog = Color('good')
-        Color.infob = Color('fine')
-        Color.warning = Color('bad')
-        Color.error = Color('error')
-        Color.table = Color('blue')
-        Color.scores = [Color('special1', 'special2', 'score%s' % i) for i in range(5)]
+        Color.normal = Color("normal")
+        Color.infog = Color("good")
+        Color.infob = Color("fine")
+        Color.warning = Color("bad")
+        Color.error = Color("error")
+        Color.table = Color("blue")
+        Color.scores = [Color("special1", "special2", "score%s" % i) for i in range(5)]
         Color.status = {}
         for s in Status:
-            Color.status[s] = Color(str(s), 'bold')
+            Color.status[s] = Color(str(s), "bold")
 
     def __init__(self, *args):
         if Color.colorful:
             modifiers = [str(_codemap[c]) for c in args]
-            self.code = '\033[%sm' % ';'.join(modifiers)
+            self.code = "\033[%sm" % ";".join(modifiers)
         else:
-            self.code = ''
+            self.code = ""
+
     def __str__(self):
         return self.code
 
     def score_color(points, maxpoints):
-        bounds = [0,4,7,9,10]
+        bounds = [0, 4, 7, 9, 10]
         p = 0
         while p < 4 and points * 10 > maxpoints * bounds[p]:
             p += 1
@@ -81,27 +85,58 @@ class Color:
 
     @staticmethod
     def colorize(status: Status, text, end=None):
-        index = (status in (Status.ok, Status.valid))
-        return '%s%s%s' % ((Color.warning, Color.infog)[index],
-                            text, 
-                            end or Color.normal)
-      
+        index = status in (Status.ok, Status.valid)
+        return "%s%s%s" % (
+            (Color.warning, Color.infog)[index],
+            text,
+            end or Color.normal,
+        )
+
 
 _sow = sys.stdout.write
 _sew = sys.stderr.write
 
 _codemap = {
-    'OK': 'green', 'tOK': 'green', 'WA': 'red', 'tWA': 'red', 'TLE': 'purple',
-    'EXC': 45, 'tEXC': 45, 'CE':'ERR', 'ERR': 41, 'VALID': 'OK',
-    'bad': 'yellow', 'good': 'green', 'ok': 'yellow', 'fine': 'blue', 'error': 'ERR',
-    
-    'score0': 196, 'score1': 208, 'score2': 226, 'score3': 228, 'score4': 46,
-    
-    'red': 91, 'green': 92, 'yellow': 93, 'blue': 94, 'purple': 95, 'cyan': 96, 'white': 37,
-
-    'bold': 1, 'dim': 2, 'underlined': 4, 'blink': 5, 'invert': 7, 
-    'nobold': 21, 'nodim': 22, 'nounderlined': 24, 'noblink': 25, 'noinvert': 27, 
-    'normal':0, 'special1':38, 'special2':5,
+    "OK": "green",
+    "tOK": "green",
+    "WA": "red",
+    "tWA": "red",
+    "TLE": "purple",
+    "EXC": 45,
+    "tEXC": 45,
+    "CE": "ERR",
+    "ERR": 41,
+    "VALID": "OK",
+    "bad": "yellow",
+    "good": "green",
+    "ok": "yellow",
+    "fine": "blue",
+    "error": "ERR",
+    "score0": 196,
+    "score1": 208,
+    "score2": 226,
+    "score3": 228,
+    "score4": 46,
+    "red": 91,
+    "green": 92,
+    "yellow": 93,
+    "blue": 94,
+    "purple": 95,
+    "cyan": 96,
+    "white": 37,
+    "bold": 1,
+    "dim": 2,
+    "underlined": 4,
+    "blink": 5,
+    "invert": 7,
+    "nobold": 21,
+    "nodim": 22,
+    "nounderlined": 24,
+    "noblink": 25,
+    "noinvert": 27,
+    "normal": 0,
+    "special1": 38,
+    "special2": 5,
 }
 
 # compile _codemap
@@ -114,6 +149,7 @@ while _changed:
             _changed = True
 
 # {{{ ---------------------- messages ----------------------------
+
 
 def error(text, doquit=True):
     _sew("%s%s%s\n" % (Color.error, text, Color.normal))
@@ -139,8 +175,9 @@ def info(text):
 
 # }}}
 
+
 def wide_str(width, side):
-    return '{:%s%ss}' % (('','>','<')[side], width)
+    return "{:%s%ss}" % (("", ">", "<")[side], width)
 
 
 def table_row(color, columns, widths, alignments, header=False):
@@ -149,23 +186,25 @@ def table_row(color, columns, widths, alignments, header=False):
             columns[i] = wide_str(widths[i], alignments[i]).format(columns[i])
         elif isinstance(columns[i], Status):
             status = columns[i]
-            columns[i] = status.colored() + ' '*(widths[i]-len(str(status)))
+            columns[i] = status.colored() + " " * (widths[i] - len(str(status)))
             columns[i] += str(Color.table)
         else:
             columns[i] = wide_str(widths[i], alignments[i]).format(str(columns[i]))
             columns[i] = str(color) + columns[i] + str(Color.table)
-    return '%s| %s |%s' % (str(Color.table), ' | '.join(columns), str(Color.normal))
+    return "%s| %s |%s" % (str(Color.table), " | ".join(columns), str(Color.normal))
 
 
 def table_header(columns, widths, alignments):
     first_row = table_row(Color.table, columns, widths, alignments, True)
-    second_row = '|'.join([str(Color.table)]+['-'*(w+2) for w in widths]+[str(Color.normal)])
-    return '\n%s\n%s' % (first_row, second_row)
-    
+    second_row = "|".join(
+        [str(Color.table)] + ["-" * (w + 2) for w in widths] + [str(Color.normal)]
+    )
+    return "\n%s\n%s" % (first_row, second_row)
+
 
 def color_test():
     args = lambda: None
-    setattr(args, 'colorful', True)
+    setattr(args, "colorful", True)
     Color.setup(args)
 
     info("white")
@@ -173,6 +212,6 @@ def color_test():
     infog("green")
     warning("warning")
     error("error", doquit=False)
-    _sew(''.join([s.colored() for s in Status])+'\n')
+    _sew("".join([s.colored() for s in Status]) + "\n")
     for i in range(11):
-        _sew('%s%s/%s%s\n' % (Color.score_color(i, 10), i, 10, Color.normal))
+        _sew("%s%s/%s%s\n" % (Color.score_color(i, 10), i, 10, Color.normal))
