@@ -53,9 +53,6 @@ if args.deprecated:
     for option in args.deprecated:
         warning("Option '%s' is deprecated." % option)
 
-if not args.dupprog:
-    args.programs = list(dict.fromkeys(args.programs))
-
 Config.python_exec = args.pythoncmd
 
 
@@ -86,10 +83,14 @@ def get_relevant_prog_files_in_directory(directory):
 
 solutions = []
 checker = []
-files = itertools.chain.from_iterable(
-    get_relevant_prog_files_in_directory(p) if os.path.isdir(p) else [p]
-    for p in args.programs
+files = list(
+    itertools.chain.from_iterable(
+        get_relevant_prog_files_in_directory(p) if os.path.isdir(p) else [p]
+        for p in args.programs
+    )
 )
+if not args.dupprog:  # remove duplicate paths
+    files = list(set(files))
 for p in files:
     if Validator.filename_befits(p):
         solutions.append(Validator(p, args))
@@ -124,6 +125,23 @@ atexit.register(cleanup)
 
 for p in programs:
     p.prepare()
+
+# multiple solutions can have same run command after compilation
+if not args.dupprog:
+    d, l = {}, []
+    for s in solutions:
+        key = s.run_cmd
+        if key in d:
+            warning(
+                "Solution %s and %s have the same run command. "
+                "Keeping only first." % (d[key].name, s.name)
+            )
+        else:
+            d[key] = s
+            l.append(s)
+    solutions = l
+
+
 # }}}
 # {{{ ------------ prepare inputs ----------------
 

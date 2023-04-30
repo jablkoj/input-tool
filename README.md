@@ -15,7 +15,7 @@
   - Štatistiky po vyhodnotení (vypnúť cez `--no-statistics`)
   - **Kompilovanie C++ s optimalizáciami a novším štandardom**
   - Zvýšené limity pre pamäť a zásobník
-  - Deduplikovanie programov na vstupe (vypnúť cez `--dupprog`)
+  - **Deduplikovanie programov na vstupe** (spolu s `-K` umožnuje rýchlejšie testovanie, vypnúť cez `--dupprog`)
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd` 
 - Kompilovanie Java riešení v dočasnom priečinku
 - Informovanie o neúspešnom generovaní vstupov
