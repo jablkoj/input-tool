@@ -11,7 +11,7 @@
     - TLE čas sa neráta do `Max time`
   - Varovný timelimit pomocou `--wtime`
 - Lepšie predvolené nastavenia
-  - **Preskakovanie zvyšných vstupov** v sade po odmietnutí (vypnúť cez `--no-fskip`)
+  - **Preskakovanie zvyšných vstupov** v sade po odmietnutí (vypnúť cez `-F`)
   - Štatistiky po vyhodnotení (vypnúť cez `--no-statistics`)
   - **Kompilovanie C++ s optimalizáciami a novším štandardom**
   - Zvýšené limity pre pamäť a zásobník
@@ -40,7 +40,7 @@ input-tester:
   -t TIMELIMIT, --time TIMELIMIT
     set timelimit (default=3,cpp=1,py=5),
     can be set to unlimited using 0 and optionally in per language format (example "2,py2=0,cxx=0.5")
-  --no-fskip
+  -F, --no-fskip
     dont skip the rest of input files in the same batch after first fail
   -R, --Reset
     recompute outputs

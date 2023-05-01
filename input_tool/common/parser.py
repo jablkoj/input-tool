@@ -190,7 +190,7 @@ class Parser:
             },
         ),
         "fskip": (
-            ("--no-fskip",),
+            ("-F", "--no-fskip",),
             {
                 dest: "fskip",
                 action: "store_false",
