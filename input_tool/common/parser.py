@@ -1,5 +1,66 @@
 # (c) 2014 jano <janoh@ksp.sk>
 import argparse
+from dataclasses import dataclass, field
+from typing import Any, Type, TypeVar
+
+
+@dataclass
+class ArgsSample:
+    indir: str
+    outdir: str
+    inext: str
+    outext: str
+    batchname: str
+    multi: bool
+    colorful: bool
+    task: str | None
+    deprecated: list[Any] = field(default_factory=list)
+
+
+@dataclass
+class ArgsGenerator:
+    indir: str
+    inext: str
+    compile: bool
+    execute: bool
+    pythoncmd: str
+    colorful: bool
+    quiet: bool
+    clearbin: bool
+    clearinput: bool
+    description: str
+    gencmd: str
+    deprecated: list[Any] = field(default_factory=list)
+
+
+@dataclass
+class ArgsTester:
+    indir: str
+    outdir: str
+    inext: str
+    outext: str
+    tempext: str
+    reset: bool
+    timelimit: str
+    warntimelimit: str
+    memorylimit: float
+    diffcmd: str | None
+    fskip: bool
+    dupprog: bool
+    compile: bool
+    sort: bool
+    execute: bool
+    pythoncmd: str
+    colorful: bool
+    colortest: bool
+    quiet: bool
+    stats: bool
+    cleartemp: bool
+    clearbin: bool
+    programs: list[str]
+    inside_oneline: bool = field(default=False)
+    inside_inputmaxlen: int = field(default=0)
+    deprecated: list[Any] = field(default_factory=list)
 
 
 class Parser:
@@ -172,11 +233,7 @@ class Parser:
         ),
         # verbosing
         "colorful": (
-            ("-b", "--boring"),
-            {dest: "colorful", action: "store_false", help: "turn colors off"},
-        ),
-        "Colorful": (
-            ("-B", "--Boring"),
+            ("-B", "--boring"),
             {dest: "colorful", action: "store_false", help: "turn colors off"},
         ),
         "colortest": (
@@ -256,7 +313,7 @@ class Parser:
         ),
     }
 
-    def __init__(self, description, arguments):
+    def __init__(self, description: str, arguments: list[str]):
         self.parser = argparse.ArgumentParser(description=description)
         for arg in arguments:
             args, kwargs = self.options.get(arg, (None, None))
@@ -264,6 +321,8 @@ class Parser:
                 raise NameError("Unrecognized option %s" % arg)
             self.parser.add_argument(*args, **kwargs)
 
-    def parse(self):
+    Args = TypeVar("Args", ArgsSample, ArgsGenerator, ArgsTester)
+
+    def parse(self, container: Type[Args]) -> Args:
         self.args = self.parser.parse_args()
-        return self.args
+        return container(**vars(self.args))

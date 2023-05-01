@@ -19,6 +19,7 @@
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd` 
 - Kompilovanie Java riešení v dočasnom priečinku
 - Informovanie o neúspešnom generovaní vstupov
+- Sformátovaný a otypovaný kód
 - Bugfixes
 
 ## Rýchlokurz

@@ -31,20 +31,27 @@ program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
 
 """
 
+from __future__ import annotations
 import os
 import shutil
 import subprocess
 from collections import defaultdict
 from input_tool.common.messages import *
+from typing import Iterable, Sequence, Tuple
+from dataclasses import dataclass
+
+from input_tool.common.parser import ArgsGenerator, ArgsTester
+
+Args = ArgsGenerator | ArgsTester
 
 
-def is_file_newer(file1, file2):
+def is_file_newer(file1: str, file2: str) -> bool | None:
     if not os.path.exists(file1) or not os.path.exists(file2):
         return None
     return os.path.getctime(file1) > os.path.getctime(file2)
 
 
-def to_base_alnum(s):
+def to_base_alnum(s: str) -> str:
     s = s.split("/")[-1]
     return "".join([x for x in s if str.isalnum(x)])
 
@@ -76,81 +83,78 @@ class Langs:
     }
 
     @staticmethod
-    def from_ext(ext):
+    def from_ext(ext: str | None) -> Lang:
         for lang in Langs.Lang:
             if ext in Langs.ext[lang]:
                 return lang
         return Langs.Lang.unknown
 
     @staticmethod
-    def collect_exts(langs):
+    def collect_exts(langs: Iterable[Lang]) -> set[str]:
         return set(ext for lang in langs for ext in Langs.ext[lang])
 
 
 class Config:
-    timelimits = {Langs.Lang.unknown: 0}
-    warn_timelimits = {Langs.Lang.unknown: 0}
+    timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
+    warn_timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
     python_exec = "python"
 
 
 class Program:
-    def compare_mask(self):
-        return (0, self.name)
+    def compare_mask(self) -> Tuple[int, int, str]:
+        return (0, 0, self.name)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Program) -> bool:
         return self.compare_mask() < other.compare_mask()
 
-    def _transform(self):
-        assert self.name
-        name = self.name
+    def _transform(self) -> None:
         self.compilecmd = None
         self.source = None
         self.ext = None
-        self.run_cmd = name
-        self.filestoclear = []
-        self.lang = Langs.Lang.unknown
+        self.run_cmd = self.name
+        self.filestoclear: list[str] = []
+        self.lang: Langs.Lang = Langs.Lang.unknown
 
         # if it is final command, dont do anything
-        if self.forceexecute or len(name.split()) > 1:
+        if self.forceexecute or len(self.name.split()) > 1:
             return
 
         # compute source, binary and extension
-        # TODO: base name can have multiple sources
-        if not "." in name:
-            valid = []
+        # TODO: base self.name can have multiple sources
+        if not "." in self.name:
+            valid: list[str] = []
             for ext_category in (Langs.lang_compiled, Langs.lang_script):
                 for ext in Langs.collect_exts(ext_category):
-                    if os.path.exists(name + "." + ext):
+                    if os.path.exists(self.name + "." + ext):
                         valid.append(ext)
             if valid:
                 self.ext = valid[0]
-                self.source = name + "." + self.ext
-                if os.path.exists(name):
+                self.source = self.name + "." + self.ext
+                if os.path.exists(self.name):
                     valid.append("<noextension>")
             if len(valid) > 1:
                 warning(
                     "Warning: multiple possible sources for %s, using first %s"
-                    % (name, valid)
+                    % (self.name, valid)
                 )
         else:
-            self.source = name
-            self.run_cmd, self.ext = name.rsplit(".", 1)
+            self.source = self.name
+            self.run_cmd, self.ext = self.name.rsplit(".", 1)
 
         self.lang = Langs.from_ext(self.ext)
-        if self.lang is Langs.Lang.unknown:
-            self.run_cmd = name
+        if self.lang is Langs.Lang.unknown or not self.source:
+            self.run_cmd = self.name
             return
 
         # compute run_cmd
         if self.lang in Langs.lang_script:
             self.run_cmd = self.source
 
-        assert self.run_cmd
         docompile = (
             self.cancompile
             and self.lang in Langs.lang_compiled
             and (
-                self.source == name
+                self.source == self.name
                 or not os.path.exists(self.run_cmd)
                 or is_file_newer(self.source, self.run_cmd)
             )
@@ -189,7 +193,7 @@ class Program:
             if self.lang is Langs.Lang.java:
                 self.run_cmd = "java -Xss256m " + self.run_cmd
 
-    def prepare(self):
+    def prepare(self) -> None:
         if self.compilecmd != None:
             so = subprocess.PIPE if self.quiet else None
             se = subprocess.STDOUT if self.quiet else None
@@ -211,7 +215,7 @@ class Program:
             Solution.cmd_maxlen = max(Solution.cmd_maxlen, len(self.run_cmd))
         self.ready = True
 
-    def clear_files(self):
+    def clear_files(self) -> None:
         for f in self.filestoclear:
             if os.path.exists(f):
                 if os.path.isdir(f):
@@ -221,11 +225,11 @@ class Program:
             else:
                 warning("Not found %s" % f)
 
-    def __init__(self, name, args):
+    def __init__(self, name: str, args: Args):
         self.name = name
-        self.quiet = args.quiet
-        self.cancompile = args.compile
-        self.forceexecute = args.execute
+        self.quiet: bool = args.quiet
+        self.cancompile: bool = args.compile
+        self.forceexecute: bool = args.execute
         self.ready = False
 
         # compute run_cmd, compilecmd and filestoclear
@@ -233,13 +237,22 @@ class Program:
 
 
 class Solution(Program):
+    @dataclass
+    class Statistics:
+        maxtime: float
+        sumtime: float
+        batchresults: dict[str, Status]
+        result: Status
+        times: defaultdict[str, list[tuple[float]]]
+        failedbatches: set[str]
+
     cmd_maxlen = len("Solution")
 
     @staticmethod
-    def filename_befits(filename):
+    def filename_befits(filename: str) -> bool:
         return to_base_alnum(filename).startswith("sol")
 
-    def updated_status(self, original, new):
+    def updated_status(self, original: Status, new: Status) -> Status:
         if original == Status.ok:
             return new
         if new == Status.ok:
@@ -248,7 +261,7 @@ class Solution(Program):
             return Status.err
         return original
 
-    def compare_mask(self):
+    def compare_mask(self) -> Tuple[int, int, str]:
         filename = self.name.rsplit(" ", 1)[-1].rsplit("/", 1)[-1].rsplit(".", 1)[0]
         score = 0
         parts = filename.split("-")
@@ -261,81 +274,85 @@ class Solution(Program):
                 score += int(parts[1])
         return (-1, -score, self.name)
 
-    def __init__(self, name, args):
+    def __init__(self, name: str, args: Args):
         super().__init__(name, args)
-        self.statistics = {
-            "maxtime": -1,
-            "sumtime": 0,
-            "batchresults": {},
-            "result": Status.ok,
-            "times": defaultdict(list),
-            "failedbatches": set(),
-        }
+        self.statistics = Solution.Statistics(
+            maxtime=-1,
+            sumtime=0,
+            batchresults={},
+            result=Status.ok,
+            times=defaultdict(list),
+            failedbatches=set(),
+        )
 
     @staticmethod
-    def get_statistics_header(inputs):
+    def get_statistics_header(inputs: Iterable[str]) -> str:
         batches = set([x.rsplit(".", 2)[0] for x in inputs if not "sample" in x])
         pts = len(batches)
         widths = [Solution.cmd_maxlen, 8, 9, 6, 6]
         colnames = ["Solution", "Max time", "Times sum", "Pt %3d" % pts, "Status"]
         return table_header(colnames, widths, [-1, 1, 1, 1, 0])
 
-    def get_statistics(self):
+    def get_statistics(self) -> str:
         points, maxpoints = 0, 0
-        for key in self.statistics["batchresults"]:
-            if "sample" in key:
+        for batch in self.statistics.batchresults:
+            if "sample" in batch:
                 continue
             maxpoints += 1
-            if self.statistics["batchresults"][key] == Status.ok:
+            if self.statistics.batchresults[batch] == Status.ok:
                 points += 1
-                self.statistics["maxtime"] = max(
-                    self.statistics["maxtime"],
-                    max(map(lambda ts: ts[0], self.statistics["times"][key])),
+                self.statistics.maxtime = max(
+                    self.statistics.maxtime,
+                    max(map(lambda ts: ts[0], self.statistics.times[batch])),
                 )
         color = Color.score_color(points, maxpoints)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
         colnames = [
             self.run_cmd,
-            self.statistics["maxtime"],
-            self.statistics["sumtime"],
+            self.statistics.maxtime,
+            self.statistics.sumtime,
             points,
-            self.statistics["result"],
+            self.statistics.result,
         ]
 
         return table_row(color, colnames, widths, [-1, 1, 1, 1, 0])
 
-    def record(self, ifile, status, times):
+    def record(self, ifile: str, status: Status, times: Sequence[float]) -> None:
         input = ifile.rsplit("/", 1)[1].rsplit(".", 1)[0]
         batch = input if input.endswith("sample") else input.rsplit(".", 1)[0]
-        batchresults = self.statistics["batchresults"]
+        batchresults = self.statistics.batchresults
         batchresults[batch] = self.updated_status(
             batchresults.get(batch, Status.ok), status
         )
-        self.statistics["times"][batch].append(tuple(times))
-        self.statistics["sumtime"] += times[0]
+        self.statistics.times[batch].append(tuple(times))
+        self.statistics.sumtime += times[0]
 
-        old_status = self.statistics["result"]
+        old_status = self.statistics.result
         new_status = self.updated_status(old_status, status)
         if old_status == new_status == status and status.warntle is not None:
-            new_status = new_status.set_warntle(old_status.warntle | status.warntle)
-        self.statistics["result"] = new_status
+            new_status = new_status.set_warntle(
+                status.warntle if status.warntle else old_status.warntle
+            )
+        self.statistics.result = new_status
 
-    def get_timelimit(self, timelimits):
+    def get_timelimit(self, timelimits: dict[Langs.Lang | str, float]) -> float:
         if self.ext in timelimits:
             return timelimits[self.ext]
         if self.lang in timelimits:
             return timelimits[self.lang]
         return timelimits[Langs.Lang.unknown]
 
-    def get_exec_cmd(self, ifile, tfile, timelimit=0, memorylimit=0.0):
+    def get_exec_cmd(
+        self, ifile: str, tfile: str, timelimit: float = 0.0, memorylimit: float = 0.0
+    ) -> Tuple[str, str]:
         timefile = ".temptime-%s-%s-%s.tmp" % (
             to_base_alnum(self.name),
             to_base_alnum(ifile),
             os.getpid(),
         )
 
-        memorylimit = int(memorylimit * 1024) if memorylimit else "unlimited"
-        ulimit_cmd = "ulimit -m %s; ulimit -s %s" % (memorylimit, memorylimit)
+        str_memorylimit = int(memorylimit * 1024) if memorylimit else "unlimited"
+        ulimit_cmd = "ulimit -m %s; ulimit -s %s" % (str_memorylimit, str_memorylimit)
         timelimit_cmd = "timeout %s" % timelimit if timelimit else ""
         time_cmd = '/usr/bin/time -f "%s" -a -o %s -q' % ("%e %U %S", timefile)
         date_cmd = "date +%%s%%N >>%s" % timefile
@@ -350,12 +367,14 @@ class Solution(Program):
         )
         return timefile, cmd
 
-    def run_args(self, ifile):
+    def run_args(self, ifile: str) -> str:
         return ""
 
-    def run(self, ifile, ofile, tfile, checker, args):
+    def run(
+        self, ifile: str, ofile: str, tfile: str, checker: Checker, args: ArgsTester
+    ) -> None:
         batch = os.path.basename(ifile).split(".")[0]
-        if args.fskip and batch in self.statistics["failedbatches"]:
+        if args.fskip and batch in self.statistics.failedbatches:
             return
 
         isvalidator = isinstance(self, Validator)
@@ -399,7 +418,7 @@ class Solution(Program):
                 os.remove(timefile)
 
         if status is not Status.ok:
-            self.statistics["failedbatches"].add(batch)
+            self.statistics.failedbatches.add(batch)
         if isvalidator and (status in (Status.ok, Status.wa)):
             status = Status.valid
 
@@ -429,13 +448,13 @@ class Solution(Program):
 
 class Validator(Solution):
     @staticmethod
-    def filename_befits(filename):
+    def filename_befits(filename: str) -> bool:
         return to_base_alnum(filename).startswith("val")
 
-    def compare_mask(self):
-        return (-2, self.name)
+    def compare_mask(self) -> Tuple[int, int, str]:
+        return (-2, 0, self.name)
 
-    def updated_status(self, original, new):
+    def updated_status(self, original: Status, new: Status) -> Status:
         if original == Status.valid:
             return new
         if new == Status.valid:
@@ -444,35 +463,35 @@ class Validator(Solution):
             return Status.err
         return original
 
-    def get_statistics(self):
-        for key in self.statistics["batchresults"]:
-            self.statistics["maxtime"] = max(
-                self.statistics["maxtime"],
-                max(map(lambda ts: ts[0], self.statistics["times"][key])),
+    def get_statistics(self) -> str:
+        for key in self.statistics.batchresults:
+            self.statistics.maxtime = max(
+                self.statistics.maxtime,
+                max(map(lambda ts: ts[0], self.statistics.times[key])),
             )
-        color = Color.score_color(self.statistics["result"] == Status.valid, 1)
+        color = Color.score_color(self.statistics.result == Status.valid, 1)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
         colnames = [
             self.run_cmd,
-            self.statistics["maxtime"],
-            self.statistics["sumtime"],
+            self.statistics.maxtime,
+            self.statistics.sumtime,
             "",
-            self.statistics["result"],
+            self.statistics.result,
         ]
 
         return table_row(color, colnames, widths, [-1, 1, 1, 1, 0])
 
-    def run_args(self, ifile):
+    def run_args(self, ifile: str) -> str:
         return " ".join(ifile.split("/")[-1].split(".")) + " "
 
-    def __init__(self, name, args):
+    def __init__(self, name: str, args: Args):
         super().__init__(name, args)
-        self.statistics["result"] = Status.valid
+        self.statistics.result = Status.valid
 
 
 class Checker(Program):
     @staticmethod
-    def filename_befits(filename):
+    def filename_befits(filename: str) -> str | None:
         filename = to_base_alnum(filename)
         prefixes = ["diff", "check", "chito", "test"]
         for prefix in prefixes:
@@ -480,17 +499,17 @@ class Checker(Program):
                 return prefix
         return None
 
-    def compare_mask(self):
-        return (-3, self.name)
+    def compare_mask(self) -> Tuple[int, int, str]:
+        return (-3, 0, self.name)
 
-    def __init__(self, name, args):
+    def __init__(self, name: str, args: Args):
         super().__init__(name, args)
         if name == "diff":
             self.run_cmd = "diff"
             self.compilecmd = None
             self.forceexecute = True
 
-    def diff_cmd(self, ifile, ofile, tfile):
+    def diff_cmd(self, ifile: str, ofile: str, tfile: str) -> str | None:
         diff_map = {
             "diff": " %s %s > /dev/null" % (ofile, tfile),
             "check": " %s %s %s > /dev/null" % (ifile, ofile, tfile),
@@ -502,12 +521,12 @@ class Checker(Program):
             return self.run_cmd + diff_map[prefix]
         return None
 
-    def check(self, ifile, ofile, tfile):
+    def check(self, ifile: str, ofile: str, tfile: str) -> int:
         se = subprocess.PIPE if self.quiet else None
         cmd = self.diff_cmd(ifile, ofile, tfile)
         if cmd is None:
             error("Unsupported checker %s" % self.name)
-            return Status.err
+            return -1
         result = subprocess.call(cmd, shell=True, stderr=se)
         if not result in (0, 1):
             warning("Checker exited with status %s" % result)
@@ -515,10 +534,10 @@ class Checker(Program):
 
 
 class Generator(Program):
-    def compare_mask(self):
-        return (-4, self.name)
+    def compare_mask(self) -> Tuple[int, int, str]:
+        return (-4, 0, self.name)
 
-    def generate(self, ifile, text):
+    def generate(self, ifile: str, text: str) -> Status:
         cmd = "%s > %s" % (self.run_cmd, ifile)
         p = subprocess.Popen(cmd, stdin=subprocess.PIPE, shell=True)
         p.communicate(str.encode(text))

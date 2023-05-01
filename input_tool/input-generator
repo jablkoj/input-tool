@@ -12,6 +12,7 @@ options = [
     "compile",
     "execute",
     "gencmd",
+    "pythoncmd",
     "colorful",
     "quiet",
     "clearinput",
@@ -19,7 +20,7 @@ options = [
     "description",
 ]
 
-from input_tool.common.parser import Parser
+from input_tool.common.parser import Parser, ArgsGenerator
 from input_tool.common.recipes import Recipe
 from input_tool.common.commands import Generator
 from input_tool.common.messages import *
@@ -28,13 +29,14 @@ import os
 import sys
 
 parser = Parser(description, options)
-args = parser.parse()
-Color.setup(args)
+args = parser.parse(ArgsGenerator)
+Color.setup(args.colorful)
 
 if args.description:
-    recipe = Recipe(open(args.description, "r"))
+    with open(args.description, "r") as f:
+        recipe = Recipe(f.readlines())
 else:
-    recipe = Recipe(sys.stdin)
+    recipe = Recipe(sys.stdin.readlines())
 
 recipe.process()
 programs = {x: Generator(x, args) for x in recipe.programs}
@@ -44,7 +46,7 @@ gencmd = args.gencmd
 programs[gencmd] = Generator(gencmd, args)
 
 
-def cleanup():
+def cleanup() -> None:
     if args.clearbin:
         for p in programs:
             programs[p].clear_files()
