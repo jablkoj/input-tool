@@ -47,6 +47,7 @@ class ArgsTester:
     diffcmd: str | None
     fskip: bool
     dupprog: bool
+    rustime: bool
     compile: bool
     sort: bool
     execute: bool
@@ -190,7 +191,10 @@ class Parser:
             },
         ),
         "fskip": (
-            ("-F", "--no-fskip",),
+            (
+                "-F",
+                "--no-fskip",
+            ),
             {
                 dest: "fskip",
                 action: "store_false",
@@ -200,6 +204,14 @@ class Parser:
         "dupprog": (
             ("--dupprog",),
             {dest: "dupprog", action: "store_true", help: "keep duplicate programs"},
+        ),
+        "rustime": (
+            ("--no-rustime",),
+            {
+                dest: "rustime",
+                action: "store_false",
+                help: "Do not show Real/User/System time statistics",
+            },
         ),
         # running options
         "compile": (

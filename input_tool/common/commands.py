@@ -98,6 +98,7 @@ class Config:
     timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
     warn_timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
     python_exec = "python"
+    rus_time = True
 
 
 class Program:
@@ -354,7 +355,9 @@ class Solution(Program):
         str_memorylimit = int(memorylimit * 1024) if memorylimit else "unlimited"
         ulimit_cmd = "ulimit -m %s; ulimit -s %s" % (str_memorylimit, str_memorylimit)
         timelimit_cmd = "timeout %s" % timelimit if timelimit else ""
-        time_cmd = '/usr/bin/time -f "%s" -a -o %s -q' % ("%e %U %S", timefile)
+        time_cmd = ["", '/usr/bin/time -f "%s" -a -o %s -q' % ("%e %U %S", timefile)][
+            Config.rus_time
+        ]
         date_cmd = "date +%%s%%N >>%s" % timefile
         prog_cmd = "%s %s <%s >%s" % (self.run_cmd, self.run_args(ifile), ifile, tfile)
         cmd = "%s; %s; %s %s %s; rc=$?; %s; exit $rc" % (
@@ -430,7 +433,8 @@ class Solution(Program):
         # construct summary
         self.record(ifile, status, run_times)
         run_cmd = ("{:<" + str(Solution.cmd_maxlen) + "s}").format(self.run_cmd)
-        time = "{:6d}ms [{:6.2f}={:6.2f}+{:6.2f}]".format(*run_times)
+        time_format = ["{:6d}ms", "{:6d}ms [{:6.2f}={:6.2f}+{:6.2f}]"][Config.rus_time]
+        time = time_format.format(*run_times)
 
         if args.inside_oneline:
             input = ("{:" + str(args.inside_inputmaxlen) + "s}").format(

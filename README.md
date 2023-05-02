@@ -7,7 +7,7 @@
   - Detailnejšie vypisovanie trvania programov
     - **Milisekundová presnosť**
     - Zobrazovanie celkového času namiesto *User time*
-    - Vypisovanie *User/System/Total time*
+    - Vypisovanie *Real/User/System time*
     - TLE čas sa neráta do `Max time`
   - Varovný timelimit pomocou `--wtime`
 - Lepšie predvolené nastavenia
@@ -17,6 +17,7 @@
   - Zvýšené limity pre pamäť a zásobník
   - **Deduplikovanie programov na vstupe** (spolu s `-K` umožnuje rýchlejšie testovanie, vypnúť cez `--dupprog`)
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd` 
+- Možnosť nemať nainštalovaný `time` 
 - Kompilovanie Java riešení v dočasnom priečinku
 - Informovanie o neúspešnom generovaní vstupov
 - Sformátovaný a otypovaný kód
@@ -79,8 +80,9 @@ Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-te
 Na **Linuxe** je to dosť jednoduché.
 
 1. Prerekvizity --
-  Potrebujete mať nainštalovaný `python3`, príkaz `time` (nestačí bashová funkcia) a
-  kompilátory C/C++ (kompilujeme pomocou `make`, Pascalu (`fpc`) a Javy. 
+  Potrebujete mať nainštalovaný `python3`, odporúčame (ale netreba) príkaz 
+  `time` (nestačí bashová funkcia) a kompilátory C/C++ (kompilujeme pomocou 
+  `make`, Pascalu (`fpc`) a Javy. 
   Java a Pascal nie su nutné, ak neplánujete takéto programy spúšťať.
   Na konci `.bashrc` odporúčame mať  
   `export CXXFLAGS="-O2 -std=gnu++11 -Wno-unused-result -DDG=1"`   

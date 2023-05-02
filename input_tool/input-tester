@@ -32,6 +32,7 @@ options = [
     "fskip",
     "dupprog",
     "pythoncmd",
+    "rustime",
 ]
 
 from input_tool.common.parser import Parser, ArgsTester
@@ -61,6 +62,7 @@ if args.deprecated:
         warning("Option '%s' is deprecated." % option)
 
 Config.python_exec = args.pythoncmd
+Config.rus_time = os.access("/usr/bin/time", os.X_OK) and args.rustime
 
 
 def parse_timelimit(str_timelimit: str) -> dict[Langs.Lang | str, float]:
