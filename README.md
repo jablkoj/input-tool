@@ -20,6 +20,7 @@
   - Zvýšené limity pre pamäť a zásobník
   - **Deduplikovanie programov na vstupe** (spolu s `-K` umožnuje rýchlejšie testovanie, vypnúť cez `--dupprog`)
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd`
+- **Rozšírená funkcionalita IDF o vlastné premenné**
 - Možnosť nemať nainštalovaný `time`
 - Kompilovanie Java riešení v dočasnom priečinku
 - Informovanie o neúspešnom generovaní vstupov
@@ -119,8 +120,9 @@ Príklad IDF
 {id} 30 1000 3
 
 # 2.sada
-{id} 1000 1000000 1
-{id} 1000 1000000 2
+$ hran=1000000
+{id} 1000 {hran} 1
+{id} 1000 {hran} 2
 ```
 
 Vyrobí postupne vstupy `1.a.in`, `1.b.in`, `1.c.in`, `2.a.in`, `2.b.in`.

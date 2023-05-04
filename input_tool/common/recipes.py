@@ -58,7 +58,7 @@ class Input:
     def __lt__(self, other: Input) -> bool:
         if self.batch != other.batch:
             assert type(self.batch) == type(other.batch)
-            return self.batch < other.batch # type: ignore
+            return self.batch < other.batch  # type: ignore
         return self.name < other.name
 
     def __init__(self, text: str, batchid: int, subid: int, inputid: int):
@@ -77,14 +77,10 @@ class Input:
     def _apply_commands(self) -> None:
         if not self.effects:
             return
-        if v := self.commands.get("batch", None):
-            self.batch = v
-        if v := self.commands.get("name", None):
-            self.name = v
-        if v := self.commands.get("class", None):
-            self.name = v + self.name
-        if v := self.commands.get("gen", None):
-            self.generator = v
+        commands = self.commands
+        self.batch = commands.get("batch", self.batch)
+        self.name = commands.get("name", self.name) + commands.get("class", "")
+        self.generator = commands.get("gen", self.generator)
 
     def _apply_format(self) -> None:
         if not self.effects:
@@ -95,6 +91,7 @@ class Input:
                 "name": self.name,
                 "id": self.id,
                 "rand": randint(0, Input.MAXINT - 1),
+                **self.commands,
             }
         )
 
@@ -174,6 +171,9 @@ class Recipe:
                 subid = 0
                 continue
             if line.startswith("#"):  # comment
+                continue
+            if line.startswith("$+"):
+                over_commands.update(self._parse_commands(line[2:]))
                 continue
             if line.startswith("$"):
                 over_commands = self._parse_commands(line[1:])

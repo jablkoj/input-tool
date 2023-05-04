@@ -70,7 +70,8 @@ Vyrobí postupne vstupy `1.a.in`, `1.b.in`, `1.c.in`, `2.a.in`, `2.b.in`. V tomt
 - `{name}` &ndash; označenie vstupu v sade
 - `{id}` &ndash; poradie vstupu od začiatku IDF
 - `{rand}` &ndash; pseudonáhodné číslo z [0, 2\*\*31)
-- `{{specialna_premenna}}` &ndash; text '`{specialna_premenna}`'
+- **`{nazov_premennej}` &ndash; hodnota premennej (vieme si vytvárať vlastné premenné pomocou `$+ nazov_premennej=<hodnota>`)**
+- `{{nazov_premennej}}` &ndash; text '`{nazov_premennej}`'
 
 Ak chcete svojmu generátoru povedať, aký vstup vyrába, nie je problém. Nasledujúci IDF:
 
@@ -115,6 +116,7 @@ Konfigurovať vieme:
 - názov vstupu v sade (`name`)
 - prefix pre názov vstupu (`class`)
 - generátor (`gen`)
+- ľubovoľnú vlastnú premennú
 
 Keďže whitespace-y slúžia na oddeľovanie parametrov, nepoužívajte ich v hodnotách parametrov.
 
