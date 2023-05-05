@@ -37,7 +37,7 @@ from dataclasses import dataclass
 import os
 import shutil
 import subprocess
-from typing import Iterable, Sequence, Tuple
+from typing import Iterable, Optional, Sequence, Tuple
 
 from input_tool.common.messages import *
 from input_tool.common.parser import ArgsGenerator, ArgsTester
@@ -244,7 +244,7 @@ class Solution(Program):
         sumtime: float
         batchresults: dict[str, Status]
         result: Status
-        times: defaultdict[str, list[tuple[float]]]
+        times: defaultdict[str, list[Optional[tuple[float]]]]
         failedbatches: set[str]
 
     cmd_maxlen = len("Solution")
@@ -304,7 +304,7 @@ class Solution(Program):
             if result != Status.ok:
                 continue
             points += 1
-            times = map(lambda ts: ts[0], self.statistics.times[batch])
+            times = [ts[0] for ts in self.statistics.times[batch] if ts]
             self.statistics.maxtime = max(self.statistics.maxtime, max(times))
             self.statistics.sumtime += sum(times)
         return points, maxpoints
@@ -322,7 +322,9 @@ class Solution(Program):
         ]
         return table_row(color, colnames, widths, [-1, 1, 1, 1, 0])
 
-    def record(self, ifile: str, status: Status, times: Sequence[float]) -> None:
+    def record(
+        self, ifile: str, status: Status, times: Optional[Sequence[float]]
+    ) -> None:
         name = os.path.basename(ifile)
         input, ext = os.path.splitext(name)
         batch = input if input.endswith("sample") else input.rsplit(".", 1)[0]
@@ -330,7 +332,7 @@ class Solution(Program):
         batchresults[batch] = self.updated_status(
             batchresults.get(batch, Status.ok), status
         )
-        self.statistics.times[batch].append(tuple(times))
+        self.statistics.times[batch].append(None if times is None else tuple(times))
 
         old_status = self.statistics.result
         new_status = self.updated_status(old_status, status)
@@ -377,6 +379,23 @@ class Solution(Program):
     def run_args(self, ifile: str) -> str:
         return ""
 
+    def translate_exit_code_to_status(self, exit_code: int) -> Status:
+        if exit_code == 0:
+            return Status.ok
+        if exit_code == 124:
+            return Status.tle
+        if exit_code > 0:
+            return Status.exc
+        return Status.err
+
+    def get_times(self, timefile):
+        try:
+            with open(timefile, "r") as tf:
+                ptime_start, *run_times, ptime_end = map(float, tf.read().split())
+                return [int((ptime_end - ptime_start) / 1e6)] + run_times
+        except:
+            return None
+
     def run(
         self, ifile: str, ofile: str, tfile: str, checker: Checker, args: ArgsTester
     ) -> None:
@@ -391,33 +410,21 @@ class Solution(Program):
         se = subprocess.PIPE if self.quiet else None
 
         # run solution
-        run_times = [-1] * 4
+        run_times: Optional[list[float]] = None
         timelimit = self.get_timelimit(Config.timelimits)
         memorylimit = float(args.memorylimit)
         timefile, cmd = self.get_exec_cmd(ifile, tfile, timelimit, memorylimit)
         try:
-            result = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
-            if result == 0:
-                status = Status.ok
-            elif result == 124:
-                status = Status.tle
-            elif result > 0:
+            exit_code = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
+            status = self.translate_exit_code_to_status(exit_code)
+
+            run_times = self.get_times(timefile)
+            if not run_times and status == Status.ok:
                 status = Status.exc
-            else:
-                status = Status.err
-            try:
-                with open(timefile, "r") as tf:
-                    ptime_start, *run_times, ptime_end = map(float, tf.read().split())
-                    run_times = [int((ptime_end - ptime_start) / 1e6)] + run_times
-            except:
-                run_times = [-1] * 4
-                if status == Status.ok:
-                    status = Status.exc
             if status == Status.ok and not isvalidator:
                 if checker.check(ifile, ofile, tfile):
                     status = Status.wa
         except Exception as e:
-            result = -1
             status = Status.err
             warning(str(e))
         finally:
@@ -431,14 +438,17 @@ class Solution(Program):
 
         warntle = self.get_timelimit(Config.warn_timelimits) * 1000
         status = status.set_warntle(
-            not isvalidator and warntle != 0 and run_times[0] >= warntle
+            not isvalidator
+            and warntle != 0
+            and run_times is not None
+            and run_times[0] >= warntle
         )
 
         # construct summary
         self.record(ifile, status, run_times)
         run_cmd = ("{:<" + str(Solution.cmd_maxlen) + "s}").format(self.run_cmd)
         time_format = ["{:6d}ms", "{:6d}ms [{:6.2f}={:6.2f}+{:6.2f}]"][Config.rus_time]
-        time = time_format.format(*run_times)
+        time = "err" if run_times is None else time_format.format(*run_times)
 
         if args.inside_oneline:
             input = ("{:" + str(args.inside_inputmaxlen) + "s}").format(
@@ -471,7 +481,7 @@ class Validator(Solution):
 
     def grade_results(self) -> None:
         for batch, result in self.statistics.batchresults.items():
-            times = map(lambda ts: ts[0], self.statistics.times[batch])
+            times = [ts[0] for ts in self.statistics.times[batch] if ts]
             self.statistics.maxtime = max(self.statistics.maxtime, max(times))
             self.statistics.sumtime += sum(times)
 
