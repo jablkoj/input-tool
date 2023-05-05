@@ -32,14 +32,14 @@ program.ext      -- If .pyX, run as 'pythonX program.ext. py = py3
 """
 
 from __future__ import annotations
+from collections import defaultdict
+from dataclasses import dataclass
 import os
 import shutil
 import subprocess
-from collections import defaultdict
-from input_tool.common.messages import *
 from typing import Iterable, Sequence, Tuple
-from dataclasses import dataclass
 
+from input_tool.common.messages import *
 from input_tool.common.parser import ArgsGenerator, ArgsTester
 
 Args = ArgsGenerator | ArgsTester
@@ -254,25 +254,26 @@ class Solution(Program):
         return to_base_alnum(filename).startswith("sol")
 
     def updated_status(self, original: Status, new: Status) -> Status:
-        if original == Status.ok:
-            return new
-        if new == Status.ok:
-            return original
         if original == Status.err or new == Status.err:
             return Status.err
+        if original == Status.ok:
+            return new
         return original
 
     def compare_mask(self) -> Tuple[int, int, str]:
-        filename = self.name.rsplit(" ", 1)[-1].rsplit("/", 1)[-1].rsplit(".", 1)[0]
+        filename = os.path.basename(self.name)
+        name, ext = os.path.splitext(filename)
+        parts = name.split("-")
         score = 0
-        parts = filename.split("-")
         if "vzorak" in parts or "vzor" in parts:
             score += 2000
-        if filename.startswith("sol"):
-            if len(filename) == 3:
-                score += 1000
-            if len(parts) > 1 and parts[1].isnumeric():
+        if name == "sol":
+            score += 1000
+        if name.startswith("sol") and len(parts) > 1:
+            if parts[1].isnumeric():
                 score += int(parts[1])
+            elif parts[1] == "wa":
+                score -= 100
         return (-1, -score, self.name)
 
     def __init__(self, name: str, args: Args):
@@ -294,18 +295,22 @@ class Solution(Program):
         colnames = ["Solution", "Max time", "Times sum", "Pt %3d" % pts, "Status"]
         return table_header(colnames, widths, [-1, 1, 1, 1, 0])
 
-    def get_statistics(self) -> str:
+    def grade_results(self) -> tuple[int, int]:
         points, maxpoints = 0, 0
-        for batch in self.statistics.batchresults:
+        for batch, result in self.statistics.batchresults.items():
             if "sample" in batch:
                 continue
             maxpoints += 1
-            if self.statistics.batchresults[batch] == Status.ok:
-                points += 1
-                self.statistics.maxtime = max(
-                    self.statistics.maxtime,
-                    max(map(lambda ts: ts[0], self.statistics.times[batch])),
-                )
+            if result != Status.ok:
+                continue
+            points += 1
+            times = map(lambda ts: ts[0], self.statistics.times[batch])
+            self.statistics.maxtime = max(self.statistics.maxtime, max(times))
+            self.statistics.sumtime += sum(times)
+        return points, maxpoints
+
+    def get_statistics(self) -> str:
+        points, maxpoints = self.grade_results()
         color = Color.score_color(points, maxpoints)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
         colnames = [
@@ -315,18 +320,17 @@ class Solution(Program):
             points,
             self.statistics.result,
         ]
-
         return table_row(color, colnames, widths, [-1, 1, 1, 1, 0])
 
     def record(self, ifile: str, status: Status, times: Sequence[float]) -> None:
-        input = ifile.rsplit("/", 1)[1].rsplit(".", 1)[0]
+        name = os.path.basename(ifile)
+        input, ext = os.path.splitext(name)
         batch = input if input.endswith("sample") else input.rsplit(".", 1)[0]
         batchresults = self.statistics.batchresults
         batchresults[batch] = self.updated_status(
             batchresults.get(batch, Status.ok), status
         )
         self.statistics.times[batch].append(tuple(times))
-        self.statistics.sumtime += times[0]
 
         old_status = self.statistics.result
         new_status = self.updated_status(old_status, status)
@@ -459,20 +463,20 @@ class Validator(Solution):
         return (-2, 0, self.name)
 
     def updated_status(self, original: Status, new: Status) -> Status:
-        if original == Status.valid:
-            return new
-        if new == Status.valid:
-            return original
         if original == Status.err or new == Status.err:
             return Status.err
+        if original == Status.valid:
+            return new
         return original
 
+    def grade_results(self) -> None:
+        for batch, result in self.statistics.batchresults.items():
+            times = map(lambda ts: ts[0], self.statistics.times[batch])
+            self.statistics.maxtime = max(self.statistics.maxtime, max(times))
+            self.statistics.sumtime += sum(times)
+
     def get_statistics(self) -> str:
-        for key in self.statistics.batchresults:
-            self.statistics.maxtime = max(
-                self.statistics.maxtime,
-                max(map(lambda ts: ts[0], self.statistics.times[key])),
-            )
+        self.grade_results()
         color = Color.score_color(self.statistics.result == Status.valid, 1)
         widths = (Solution.cmd_maxlen, 8, 9, 6, 6)
         colnames = [
