@@ -22,6 +22,8 @@ input-tester:
     what command is used to execute python, e.g. `python` or `pypy`
   -q, --quiet
     dont let subprograms print stuff
+  -j THREADS, --threads THREADS
+    how many threads to use (default=1)
 ```
 
 ### Inteligencia

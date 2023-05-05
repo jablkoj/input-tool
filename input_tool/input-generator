@@ -13,7 +13,7 @@ options = [
     "execute",
     "gencmd",
     "pythoncmd",
-    "threads",
+    "threads_gen",
     "colorful",
     "quiet",
     "clearinput",

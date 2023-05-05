@@ -53,7 +53,7 @@ class ArgsTester:
     sort: bool
     execute: bool
     pythoncmd: str
-    # threads: int
+    threads: int
     colorful: bool
     colortest: bool
     quiet: bool
@@ -245,12 +245,21 @@ class Parser:
                 help: "what command is used to execute python, e.g. `python` or `pypy`",
             },
         ),
-        "threads": (
+        "threads_gen": (
             ("-j", "--threads"),
             {
                 dest: "threads",
                 default: 4,
                 help: "how many threads to use (default=4)",
+                "type": int,
+            },
+        ),
+        "threads_test": (
+            ("-j", "--threads"),
+            {
+                dest: "threads",
+                default: 1,
+                help: "how many threads to use (default=1)",
                 "type": int,
             },
         ),

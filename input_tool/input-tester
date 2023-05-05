@@ -32,10 +32,12 @@ options = [
     "fskip",
     "dupprog",
     "pythoncmd",
+    "threads_test",
     "rustime",
 ]
 
 import atexit
+from concurrent.futures import ThreadPoolExecutor
 import itertools
 import os
 
@@ -201,28 +203,37 @@ setattr(args, "inside_inputmaxlen", max(map(len, inputs)))
 for input in inputs:
     input_file = args.indir + "/" + input
     output_file = args.outdir + "/" + input.rsplit(".", 1)[0] + "." + args.outext
-    temp_file = args.outdir + "/" + input.rsplit(".", 1)[0] + "." + args.tempext
+    temp_file = args.outdir + "/" + input.rsplit(".", 1)[0] + ".{}." + args.tempext
 
     if len(solutions) > 1:
         print("%s >" % (input))
 
     generated_output = False
-    for sol in solutions:
-        result_file = get_result_file(
-            output_file,
-            temp_file,
-            isinstance(sol, Validator),
-            args.reset and not generated_output,
-        )
-        if result_file == output_file:
-            generated_output = True
-        sol.run(input_file, output_file, result_file, checker, args)
-        if (
-            args.cleartemp
-            and output_file != result_file
-            and os.path.exists(result_file)
-        ):
-            os.remove(result_file)
+    futures = []
+    with ThreadPoolExecutor(max_workers=args.threads) as executor:
+        for si, sol in enumerate(solutions):
+            result_file = get_result_file(
+                output_file,
+                temp_file.format(si),
+                isinstance(sol, Validator),
+                args.reset and not generated_output,
+            )
+            if result_file == output_file:
+                generated_output = True
+
+            def run_sol(sol, result_file) -> None:
+                sol.run(input_file, output_file, result_file, checker, args)
+                if (
+                    args.cleartemp
+                    and output_file != result_file
+                    and os.path.exists(result_file)
+                ):
+                    os.remove(result_file)
+
+            futures.append(executor.submit(run_sol, sol, result_file))
+        
+        for future in futures:
+            future.result()
 
 # ------------ print sumary ------------------
 

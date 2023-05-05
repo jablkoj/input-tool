@@ -38,6 +38,7 @@ import os
 from enum import Enum
 import shutil
 import subprocess
+import tempfile
 from typing import Iterable, Optional, Sequence, Tuple
 
 from input_tool.common.messages import *
@@ -353,11 +354,9 @@ class Solution(Program):
     def get_exec_cmd(
         self, ifile: str, tfile: str, timelimit: float = 0.0, memorylimit: float = 0.0
     ) -> Tuple[str, str]:
-        timefile = ".temptime-%s-%s-%s.tmp" % (
-            to_base_alnum(self.name),
-            to_base_alnum(ifile),
-            os.getpid(),
-        )
+        timefile = tempfile.NamedTemporaryFile(delete=False)
+        timefile.close()
+        timefile = timefile.name
 
         str_memorylimit = int(memorylimit * 1024) if memorylimit else "unlimited"
         ulimit_cmd = "ulimit -m %s; ulimit -s %s" % (str_memorylimit, str_memorylimit)

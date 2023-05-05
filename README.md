@@ -19,7 +19,7 @@
   - **Kompilovanie C++ s optimalizáciami a novším štandardom**
   - Zvýšené limity pre pamäť a zásobník
   - **Deduplikovanie programov na vstupe** (spolu s `-K` umožnuje rýchlejšie testovanie, vypnúť cez `--dupprog`)
-  - **Paralelné generovanie vstupov** (pomocou prepínača `-j`)
+  - **Paralelné generovanie vstupov a testovanie** (pomocou prepínača `-j`)
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd`
 - **Rozšírená funkcionalita IDF o vlastné premenné**
 - Možnosť nemať nainštalovaný `time`
@@ -173,6 +173,14 @@ Niektoré úlohy potrebujú na určenie správnosti hodnotič. Ten vie byť auto
 ### `--pythoncmd`
 
 Niekedy by sme boli radi, keby Python nebol taký pomalý. To sa dá väčšinou vyriešiť použitím _PyPy_ interpretera. Dokážeme to určiť pomocou tohoto argumentu, použitím `--pythoncmd pypy`.
+
+### `-j --threads`
+
+Generovanie a testovanie veľa vstupov a riešení často dlho trvá. Paralelizáciou práce vieme tento čas skrátiť. Paralelizácia však nie je priamočiare pozitívum. Keď dáme vstupy generovať so 100 vláknami, neuvidíme 100x zrýchlenie. Využitím príliš nadbytočného množstva vlákien si vieme výkon znížiť a optimálny počet vie byť oveľa menej než dostupný počet vlákien vášho procesoru.
+
+Paralelné testovanie prebieha iba v rámci jedného vstupu, teda druhý vstup sa začne testovať až keď všetky programy dobehnú na tom prvom. Pri testovaní viacero riešení naraz, budú časy ktoré nameriame väčšie ako tie pri sériovom testovaní. Odporúčame teda občas a hlavne pred zverejnením úloh pretestovať riešenia bez paralelizácie.
+
+Z týchto dôvodov je predvolené množstvo vlákien pre generátor 4 a pre testovač 1.
 
 ### Príklady
 
