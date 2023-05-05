@@ -19,6 +19,7 @@
   - **Kompilovanie C++ s optimalizáciami a novším štandardom**
   - Zvýšené limity pre pamäť a zásobník
   - **Deduplikovanie programov na vstupe** (spolu s `-K` umožnuje rýchlejšie testovanie, vypnúť cez `--dupprog`)
+  - **Paralelné generovanie vstupov** (pomocou prepínača `-j`)
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd`
 - **Rozšírená funkcionalita IDF o vlastné premenné**
 - Možnosť nemať nainštalovaný `time`

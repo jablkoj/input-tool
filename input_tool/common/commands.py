@@ -162,11 +162,11 @@ class Program:
         )
         if docompile:
             if self.lang is Langs.Lang.c:
-                self.compilecmd = 'CFLAGS="$CFLAGS -O2 -std=c17" make %s' % self.run_cmd
+                self.compilecmd = 'CFLAGS="-O2 -std=c17 $CFLAGS" make %s' % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
             elif self.lang is Langs.Lang.cpp:
                 self.compilecmd = (
-                    'CXXFLAGS="$CXXFLAGS -O2 -std=c++20" make %s' % self.run_cmd
+                    'CXXFLAGS="-O2 -std=c++20 $CXXFLAGS" make %s' % self.run_cmd
                 )
                 self.filestoclear.append(self.run_cmd)
             elif self.lang is Langs.Lang.pascal:

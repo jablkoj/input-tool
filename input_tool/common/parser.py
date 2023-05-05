@@ -30,6 +30,7 @@ class ArgsGenerator:
     clearinput: bool
     description: str
     gencmd: str
+    threads: int
     deprecated: list[Any] = field(default_factory=list)
 
 
@@ -52,6 +53,7 @@ class ArgsTester:
     sort: bool
     execute: bool
     pythoncmd: str
+    # threads: int
     colorful: bool
     colortest: bool
     quiet: bool
@@ -241,6 +243,15 @@ class Parser:
                 dest: "pythoncmd",
                 default: "python",
                 help: "what command is used to execute python, e.g. `python` or `pypy`",
+            },
+        ),
+        "threads": (
+            ("-j", "--threads"),
+            {
+                dest: "threads",
+                default: 4,
+                help: "how many threads to use (default=4)",
+                "type": int,
             },
         ),
         # verbosing
