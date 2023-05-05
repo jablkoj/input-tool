@@ -35,7 +35,10 @@ options = [
     "rustime",
 ]
 
-from input_tool.common.parser import Parser, ArgsTester
+import atexit
+import itertools
+import os
+
 from input_tool.common.commands import (
     Langs,
     Config,
@@ -45,9 +48,7 @@ from input_tool.common.commands import (
     Checker,
 )
 from input_tool.common.messages import *
-import atexit
-import itertools
-import os
+from input_tool.common.parser import Parser, ArgsTester
 
 parser = Parser(description, options)
 args = parser.parse(ArgsTester)

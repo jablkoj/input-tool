@@ -21,14 +21,15 @@ options = [
     "description",
 ]
 
-from input_tool.common.parser import Parser, ArgsGenerator
-from input_tool.common.recipes import Recipe
-from input_tool.common.commands import Generator
-from input_tool.common.messages import *
 import atexit
+from concurrent.futures import ThreadPoolExecutor
 import os
 import sys
-from concurrent.futures import ThreadPoolExecutor
+
+from input_tool.common.commands import Generator
+from input_tool.common.messages import *
+from input_tool.common.parser import Parser, ArgsGenerator
+from input_tool.common.recipes import Recipe
 
 parser = Parser(description, options)
 args = parser.parse(ArgsGenerator)
