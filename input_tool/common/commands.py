@@ -42,9 +42,6 @@ import tempfile
 from typing import Iterable, Optional, Sequence, Tuple
 
 from input_tool.common.messages import *
-from input_tool.common.parser import ArgsGenerator, ArgsTester
-
-Args = ArgsGenerator | ArgsTester
 
 default_logger = Logger()
 
@@ -71,7 +68,7 @@ class Langs:
         rust = "rs"
 
     lang_compiled = (Lang.c, Lang.cpp, Lang.pascal, Lang.java, Lang.rust)
-    lang_script = (Lang.python, )
+    lang_script = (Lang.python,)
     lang_all = lang_compiled + lang_script
 
     ext = {
@@ -97,18 +94,25 @@ class Langs:
 
 
 class Config:
+    pythoncmd = "python3"
+    fskip: bool
+    rus_time: bool
     timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
     warn_timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
-    python_exec = "python3"
-    rus_time = True
+    memorylimit: float
+    quiet: bool
+    compile: bool
+    execute: bool
+    inside_oneline: bool
+    inside_inputmaxlen: int
 
 
 class Program:
-    def __init__(self, name: str, args: Args, logger: Optional[Logger] = None):
+    def __init__(self, name: str, logger: Optional[Logger] = None):
         self.name = name
-        self.quiet: bool = args.quiet
-        self.cancompile: bool = args.compile
-        self.forceexecute: bool = args.execute
+        self.quiet: bool = Config.quiet
+        self.cancompile: bool = Config.compile
+        self.forceexecute: bool = Config.execute
         self.ready = False
         self.logger = logger if logger is not None else default_logger
 
@@ -201,7 +205,7 @@ class Program:
 
         if not os.access(self.run_cmd, os.X_OK):
             if self.lang is Langs.Lang.python:
-                self.run_cmd = "%s %s" % (Config.python_exec, self.source)
+                self.run_cmd = "%s %s" % (Config.pythoncmd, self.source)
             if self.lang is Langs.Lang.java:
                 self.run_cmd = "java -Xss256m " + self.run_cmd
 
@@ -250,8 +254,8 @@ class Solution(Program):
 
     cmd_maxlen = len("Solution")
 
-    def __init__(self, name: str, args: Args):
-        super().__init__(name, args)
+    def __init__(self, name: str):
+        super().__init__(name)
         self.statistics = Solution.Statistics(
             maxtime=-1,
             sumtime=0,
@@ -395,11 +399,9 @@ class Solution(Program):
         except:
             return None
 
-    def run(
-        self, ifile: str, ofile: str, tfile: str, checker: Checker, args: ArgsTester
-    ) -> None:
+    def run(self, ifile: str, ofile: str, tfile: str, checker: Checker) -> None:
         batch = os.path.basename(ifile).split(".")[0]
-        if args.fskip and batch in self.statistics.failedbatches:
+        if Config.fskip and batch in self.statistics.failedbatches:
             return
 
         isvalidator = isinstance(self, Validator)
@@ -411,7 +413,7 @@ class Solution(Program):
         # run solution
         run_times: Optional[list[float]] = None
         timelimit = self.get_timelimit(Config.timelimits)
-        memorylimit = float(args.memorylimit)
+        memorylimit = float(Config.memorylimit)
         timefile, cmd = self.get_exec_cmd(ifile, tfile, timelimit, memorylimit)
         try:
             exit_code = subprocess.call(cmd, stdout=so, stderr=se, shell=True)
@@ -449,8 +451,8 @@ class Solution(Program):
         time_format = ["{:6d}ms", "{:6d}ms [{:6.2f}={:6.2f}+{:6.2f}]"][Config.rus_time]
         time = "err" if run_times is None else time_format.format(*run_times)
 
-        if args.inside_oneline:
-            input = ("{:" + str(args.inside_inputmaxlen) + "s}").format(
+        if Config.inside_oneline:
+            input = ("{:" + str(Config.inside_inputmaxlen) + "s}").format(
                 (ifile.rsplit("/", 1)[1])
             )
             summary = "%s < %s %s" % (run_cmd, input, time)
@@ -464,8 +466,8 @@ class Solution(Program):
 
 
 class Validator(Solution):
-    def __init__(self, name: str, args: Args):
-        super().__init__(name, args)
+    def __init__(self, name: str):
+        super().__init__(name)
         self.statistics.result = Status.valid
 
     @staticmethod
@@ -507,8 +509,8 @@ class Validator(Solution):
 
 
 class Checker(Program):
-    def __init__(self, name: str, args: Args):
-        super().__init__(name, args)
+    def __init__(self, name: str):
+        super().__init__(name)
         if name == "diff":
             self.run_cmd = "diff"
             self.compilecmd = None

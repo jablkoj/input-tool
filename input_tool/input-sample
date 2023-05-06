@@ -28,7 +28,7 @@ from input_tool.common.recipes import Input, Sample, prepare
 parser = Parser(description, options)
 args = parser.parse(ArgsSample)
 Color.setup(args.colorful)
-prepare(args)
+prepare(args.batchname)
 
 samples_in: list[str] = []
 samples_out: list[str] = []

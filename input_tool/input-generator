@@ -26,7 +26,7 @@ from concurrent.futures import ThreadPoolExecutor
 import os
 import sys
 
-from input_tool.common.commands import Generator
+from input_tool.common.commands import Config, Generator
 from input_tool.common.messages import *
 from input_tool.common.parser import Parser, ArgsGenerator
 from input_tool.common.recipes import Recipe
@@ -35,6 +35,9 @@ parser = Parser(description, options)
 args = parser.parse(ArgsGenerator)
 Color.setup(args.colorful)
 
+for key in ("pythoncmd", "quiet", "compile", "execute"):
+    setattr(Config, key, getattr(args, key))
+
 if args.description:
     with open(args.description, "r") as f:
         recipe = Recipe(f.readlines())
@@ -42,11 +45,11 @@ else:
     recipe = Recipe(sys.stdin.readlines())
 
 recipe.process()
-programs = {x: Generator(x, args) for x in recipe.programs}
+programs = {x: Generator(x) for x in recipe.programs}
 
 # {{{ ----------- prepare programs -------------------
 gencmd = args.gencmd
-programs[gencmd] = Generator(gencmd, args)
+programs[gencmd] = Generator(gencmd)
 
 
 def cleanup() -> None:

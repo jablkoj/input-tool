@@ -30,8 +30,6 @@ from __future__ import annotations
 from random import randint
 from typing import Sequence
 
-from input_tool.common.parser import ArgsSample
-
 
 def _int_log(number: int, base: int) -> int:
     result = 1
@@ -237,7 +235,7 @@ _cumberbatch = """\
 ~~~~~~::::,::,.,.....:::~~:~::,,,,,.....,,,,,,,,,,,,,,,,,:,:"""
 
 
-def prepare(args: ArgsSample) -> None:
+def prepare(batchname: str) -> None:
     # lol ;)
-    if args.batchname.lower() == "cumber":
+    if batchname.lower() == "cumber":
         print(_cumberbatch)

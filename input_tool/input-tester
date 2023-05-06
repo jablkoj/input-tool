@@ -64,7 +64,8 @@ if args.deprecated:
     for option in args.deprecated:
         warning("Option '%s' is deprecated." % option)
 
-Config.python_exec = args.pythoncmd
+for key in ("pythoncmd", "fskip", "memorylimit", "quiet", "compile", "execute"):
+    setattr(Config, key, getattr(args, key))
 Config.rus_time = os.access("/usr/bin/time", os.X_OK) and args.rustime
 
 
@@ -105,11 +106,11 @@ if not args.dupprog:  # remove duplicate paths
     files = list(set(files))
 for p in files:
     if Validator.filename_befits(p):
-        solutions.append(Validator(p, args))
+        solutions.append(Validator(p))
     elif Checker.filename_befits(p):
         checkers.append(p)
     else:
-        solutions.append(Solution(p, args))
+        solutions.append(Solution(p))
 if args.diffcmd is not None:
     checkers = [args.diffcmd]
 if not checkers:
@@ -120,7 +121,7 @@ if len(checkers) > 1:
         + "Set explicitly with -d/--diffcmd (e.g. -d diff) "
         + "or leave only one checker in the directory."
     )
-checker: Checker = Checker(checkers[0], args)
+checker: Checker = Checker(checkers[0])
 if args.sort:
     solutions.sort()
 programs = [checker]
@@ -194,8 +195,8 @@ def temp_clear() -> None:
 
 temp_clear()
 
-setattr(args, "inside_oneline", len(solutions) <= 1)
-setattr(args, "inside_inputmaxlen", max(map(len, inputs)))
+Config.inside_oneline = len(solutions) <= 1
+Config.inside_inputmaxlen = max(map(len, inputs))
 
 # }}}
 
