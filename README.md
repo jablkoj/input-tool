@@ -23,6 +23,7 @@
 - Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd`
 - **Rozšírená funkcionalita IDF o vlastné premenné**
 - Možnosť nemať nainštalovaný `time`
+- Zrušená podpora pre Python2
 - Kompilovanie Java riešení v dočasnom priečinku
 - Informovanie o neúspešnom generovaní vstupov
 - Sformátovaný a otypovaný kód
@@ -172,7 +173,7 @@ Niektoré úlohy potrebujú na určenie správnosti hodnotič. Ten vie byť auto
 
 ### `--pythoncmd`
 
-Niekedy by sme boli radi, keby Python nebol taký pomalý. To sa dá väčšinou vyriešiť použitím _PyPy_ interpretera. Dokážeme to určiť pomocou tohoto argumentu, použitím `--pythoncmd pypy`.
+Niekedy by sme boli radi, keby Python nebol taký pomalý. To sa dá väčšinou vyriešiť použitím _PyPy_ interpretera. Dokážeme to určiť pomocou tohoto argumentu, použitím `--pythoncmd pypy3`.
 
 ### `-j --threads`
 

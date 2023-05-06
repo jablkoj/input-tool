@@ -8,7 +8,7 @@ input-tester:
     show this help message and exit
   -t TIMELIMIT, --time TIMELIMIT
     set timelimit (default=3,cpp=1,py=5),
-    can be set to unlimited using 0 and optionally in per language format (example "2,py2=0,cxx=0.5")
+    can be set to unlimited using 0 and optionally in per language format (example "2,py=0,cxx=0.5")
   -F, --no-fskip
     dont skip the rest of input files in the same batch after first fail
   -R, --Reset
@@ -19,7 +19,7 @@ input-tester:
     program which checks correctness of output (default=diff),
     arguments given to program depends of prefix: diff $our $theirs, check $inp $our $theirs
   --pythoncmd
-    what command is used to execute python, e.g. `python` or `pypy`
+    what command is used to execute python, e.g. `python3` or `pypy3`
   -q, --quiet
     dont let subprograms print stuff
   -j THREADS, --threads THREADS

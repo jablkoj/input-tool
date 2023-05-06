@@ -67,12 +67,11 @@ class Langs:
         cpp = "cpp"
         pascal = "pas"
         java = "java"
-        python2 = "py2"
-        python3 = "py3"
+        python = "py3"
         rust = "rs"
 
     lang_compiled = (Lang.c, Lang.cpp, Lang.pascal, Lang.java, Lang.rust)
-    lang_script = (Lang.python2, Lang.python3)
+    lang_script = (Lang.python, )
     lang_all = lang_compiled + lang_script
 
     ext = {
@@ -81,8 +80,7 @@ class Langs:
         Lang.cpp: ["cpp", "cxx", "c++", "cp", "cc"],
         Lang.pascal: ["pas"],
         Lang.java: ["java"],
-        Lang.python3: ["py", "py3"],
-        Lang.python2: ["py2"],
+        Lang.python: ["py"],
         Lang.rust: ["rs"],
     }
 
@@ -101,7 +99,7 @@ class Langs:
 class Config:
     timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
     warn_timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
-    python_exec = "python"
+    python_exec = "python3"
     rus_time = True
 
 
@@ -202,10 +200,8 @@ class Program:
                 self.filestoclear.append(self.run_cmd)
 
         if not os.access(self.run_cmd, os.X_OK):
-            if self.lang is Langs.Lang.python3:
-                self.run_cmd = "%s3 %s" % (Config.python_exec, self.source)
-            if self.lang is Langs.Lang.python2:
-                self.run_cmd = "%s2 %s" % (Config.python_exec, self.source)
+            if self.lang is Langs.Lang.python:
+                self.run_cmd = "%s %s" % (Config.python_exec, self.source)
             if self.lang is Langs.Lang.java:
                 self.run_cmd = "java -Xss256m " + self.run_cmd
 

@@ -148,7 +148,7 @@ class Parser:
                 default: "3,cpp=1,py=5",
                 help: "set timelimit (default=3,cpp=1,py=5), "
                 + "can be set to unlimited using 0 and "
-                + 'optionally in per language format (e.g. "1.5,py2=0,cpp=0.5)"',
+                + 'optionally in per language format (e.g. "1.5,py=0,cpp=0.5)"',
             },
         ),
         "warntimelimit": (
@@ -157,7 +157,7 @@ class Parser:
                 dest: "warntimelimit",
                 default: "0",
                 help: "set warn timelimit (default=infinity) which issues warning but does not fail, "
-                + 'can be set in optional per language format (e.g. "1.5,py2=0,cpp=0.5)',
+                + 'can be set in optional per language format (e.g. "1.5,py=5,cpp=0.5)',
             },
         ),
         "memorylimit": (
@@ -241,8 +241,8 @@ class Parser:
             ("--pythoncmd",),
             {
                 dest: "pythoncmd",
-                default: "python",
-                help: "what command is used to execute python, e.g. `python` or `pypy`",
+                default: "python3",
+                help: "what command is used to execute python, e.g. `python3` or `pypy3` (default=python3)",
             },
         ),
         "threads_gen": (
