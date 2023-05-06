@@ -154,6 +154,10 @@ if not args.dupprog:
             l.append(s)
     solutions = l
 
+parallel_logger_manager = ParallelLoggerManager()
+for sol in solutions:
+    sol.logger = parallel_logger_manager.get_sink()
+
 
 # }}}
 # {{{ ------------ prepare inputs ----------------
@@ -169,14 +173,11 @@ else:
 
 
 def get_result_file(
-    out_file: str, temp_file: str, isvalidator: bool, force_out: bool = False
+    out_file: str, temp_file: str, isvalidator: bool, force: str = "none"
 ):
-    if isvalidator:
+    if isvalidator or force == "temp":
         return temp_file
-    if force_out:
-        return out_file
-    if not os.path.exists(out_file):
-        infob("File %s not found. Will be created now." % out_file)
+    if not os.path.exists(out_file) or force == "out":
         return out_file
     return temp_file
 
@@ -212,17 +213,22 @@ for input in inputs:
     futures = []
     with ThreadPoolExecutor(max_workers=args.threads) as executor:
         for si, sol in enumerate(solutions):
+            result_force = (
+                "temp" if generated_output else "out" if args.reset else "none"
+            )
             result_file = get_result_file(
                 output_file,
                 temp_file.format(si),
                 isinstance(sol, Validator),
-                args.reset and not generated_output,
+                result_force,
             )
             if result_file == output_file:
+                reason = ("doesn't exist", "recompute")[os.path.exists(output_file)]
+                infob("File %s will be created now (%s)." % (output_file, reason))
                 generated_output = True
 
-            def run_sol(sol, result_file) -> None:
-                sol.run(input_file, output_file, result_file, checker, args)
+            def run_sol(sol: Solution, result_file: str) -> None:
+                sol.run(input_file, output_file, result_file, checker)
                 if (
                     args.cleartemp
                     and output_file != result_file
@@ -231,9 +237,11 @@ for input in inputs:
                     os.remove(result_file)
 
             futures.append(executor.submit(run_sol, sol, result_file))
-        
-        for future in futures:
+
+        for future, logger in zip(futures, parallel_logger_manager.sinks):
             future.result()
+            plain(logger.read(), "")
+        parallel_logger_manager.clear_buffers()
 
 # ------------ print sumary ------------------
 

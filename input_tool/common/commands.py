@@ -46,6 +46,8 @@ from input_tool.common.parser import ArgsGenerator, ArgsTester
 
 Args = ArgsGenerator | ArgsTester
 
+default_logger = Logger()
+
 
 def is_file_newer(file1: str, file2: str) -> bool | None:
     if not os.path.exists(file1) or not os.path.exists(file2):
@@ -104,12 +106,13 @@ class Config:
 
 
 class Program:
-    def __init__(self, name: str, args: Args):
+    def __init__(self, name: str, args: Args, logger: Optional[Logger] = None):
         self.name = name
         self.quiet: bool = args.quiet
         self.cancompile: bool = args.compile
         self.forceexecute: bool = args.execute
         self.ready = False
+        self.logger = logger if logger is not None else default_logger
 
         # compute run_cmd, compilecmd and filestoclear
         self._transform()
@@ -146,7 +149,7 @@ class Program:
                 if os.path.exists(self.name):
                     valid.append("<noextension>")
             if len(valid) > 1:
-                warning(
+                self.logger.warning(
                     "Warning: multiple possible sources for %s, using first %s"
                     % (self.name, valid)
                 )
@@ -210,11 +213,11 @@ class Program:
         if self.compilecmd != None:
             so = subprocess.PIPE if self.quiet else None
             se = subprocess.STDOUT if self.quiet else None
-            infob("Compiling: %s" % self.compilecmd)
+            self.logger.infob("Compiling: %s" % self.compilecmd)
             try:
                 subprocess.check_call(self.compilecmd, shell=True, stdout=so, stderr=se)
             except:
-                error("Compilation failed.")
+                self.logger.error("Compilation failed.")
 
         assert self.run_cmd
         if (
@@ -236,7 +239,7 @@ class Program:
                 else:
                     os.remove(f)
             else:
-                warning("Not found %s" % f)
+                self.logger.warning("Not found %s" % f)
 
 
 class Solution(Program):
@@ -405,7 +408,7 @@ class Solution(Program):
 
         isvalidator = isinstance(self, Validator)
         if not self.ready:
-            error("%s not prepared for execution" % self.name)
+            self.logger.error("%s not prepared for execution" % self.name)
         so = subprocess.PIPE if self.quiet else None
         se = subprocess.PIPE if self.quiet else None
 
@@ -426,7 +429,7 @@ class Solution(Program):
                     status = Status.wa
         except Exception as e:
             status = Status.err
-            warning(str(e))
+            self.logger.warning(str(e))
         finally:
             if os.path.exists(timefile):
                 os.remove(timefile)
@@ -458,10 +461,10 @@ class Solution(Program):
         else:
             summary = "    %s  %s" % (run_cmd, time)
 
-        print(Color.colorize(status, summary), status.colored())
+        self.logger.plain("%s %s" % (Color.colorize(status, summary), status.colored()))
 
         if status == Status.err:
-            error("Internal error. Testing will not continue", doquit=True)
+            self.logger.error("Internal error. Testing will not continue", doquit=True)
 
 
 class Validator(Solution):
@@ -543,11 +546,11 @@ class Checker(Program):
         se = subprocess.PIPE if self.quiet else None
         cmd = self.diff_cmd(ifile, ofile, tfile)
         if cmd is None:
-            error("Unsupported checker %s" % self.name)
+            self.logger.error("Unsupported checker %s" % self.name)
             return -1
         result = subprocess.call(cmd, shell=True, stderr=se)
         if not result in (0, 1):
-            warning("Checker exited with status %s" % result)
+            self.logger.warning("Checker exited with status %s" % result)
         return result
 
 

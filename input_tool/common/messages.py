@@ -158,6 +158,63 @@ while _changed:
 # {{{ ---------------------- messages ----------------------------
 
 
+class Logger:
+    def __init__(self, file=sys.stderr):
+        self.file = file
+
+    def write(self, text: Any) -> None:
+        self.file.write(text)
+
+    def error(self, text: Any, doquit: bool = True) -> None:
+        self.write("%s%s%s\n" % (Color.error, text, Color.normal))
+        if doquit:
+            quit(1)
+
+    def warning(self, text: Any) -> None:
+        self.write("%s%s%s\n" % (Color.warning, text, Color.normal))
+
+    def infob(self, text: Any) -> None:
+        self.write("%s%s%s\n" % (Color.infob, text, Color.normal))
+
+    def infog(self, text: Any) -> None:
+        self.write("%s%s%s\n" % (Color.infog, text, Color.normal))
+
+    def info(self, text: Any) -> None:
+        self.write("%s\n" % text)
+
+    def plain(self, text: Any, end: str = "\n") -> None:
+        self.write("%s%s" % (text, end))
+
+
+class BufferedLogger(Logger):
+    def __init__(self, file=sys.stderr):
+        self.file = file
+        self.buffer = []
+
+    def write(self, text: Any) -> None:
+        self.buffer.append(text)
+
+    def read(self) -> str:
+        return "".join(self.buffer)
+
+    def flush(self) -> None:
+        self.file.write("".join(self.buffer))
+        self.buffer.clear()
+
+
+class ParallelLoggerManager:
+    def __init__(self):
+        self.sinks: list[BufferedLogger] = []
+
+    def get_sink(self) -> BufferedLogger:
+        self.sinks.append(BufferedLogger())
+        return self.sinks[-1]
+
+    def clear_buffers(self) -> None:
+        for c in self.sinks:
+            c.buffer.clear()
+
+
 def error(text: Any, doquit: bool = True) -> None:
     _sew("%s%s%s\n" % (Color.error, text, Color.normal))
     if doquit:
@@ -178,6 +235,10 @@ def infog(text: Any) -> None:
 
 def info(text: Any) -> None:
     _sew("%s\n" % text)
+
+
+def plain(text: Any, end: str = "\n") -> None:
+    _sew("%s%s" % (text, end))
 
 
 # }}}
