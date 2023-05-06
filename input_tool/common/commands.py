@@ -35,6 +35,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 import os
+from enum import Enum
 import shutil
 import subprocess
 from typing import Iterable, Optional, Sequence, Tuple
@@ -102,6 +103,16 @@ class Config:
 
 
 class Program:
+    def __init__(self, name: str, args: Args):
+        self.name = name
+        self.quiet: bool = args.quiet
+        self.cancompile: bool = args.compile
+        self.forceexecute: bool = args.execute
+        self.ready = False
+
+        # compute run_cmd, compilecmd and filestoclear
+        self._transform()
+
     def compare_mask(self) -> Tuple[int, int, str]:
         return (0, 0, self.name)
 
@@ -226,16 +237,6 @@ class Program:
             else:
                 warning("Not found %s" % f)
 
-    def __init__(self, name: str, args: Args):
-        self.name = name
-        self.quiet: bool = args.quiet
-        self.cancompile: bool = args.compile
-        self.forceexecute: bool = args.execute
-        self.ready = False
-
-        # compute run_cmd, compilecmd and filestoclear
-        self._transform()
-
 
 class Solution(Program):
     @dataclass
@@ -248,6 +249,17 @@ class Solution(Program):
         failedbatches: set[str]
 
     cmd_maxlen = len("Solution")
+
+    def __init__(self, name: str, args: Args):
+        super().__init__(name, args)
+        self.statistics = Solution.Statistics(
+            maxtime=-1,
+            sumtime=0,
+            batchresults={},
+            result=Status.ok,
+            times=defaultdict(list),
+            failedbatches=set(),
+        )
 
     @staticmethod
     def filename_befits(filename: str) -> bool:
@@ -275,17 +287,6 @@ class Solution(Program):
             elif parts[1] == "wa":
                 score -= 100
         return (-1, -score, self.name)
-
-    def __init__(self, name: str, args: Args):
-        super().__init__(name, args)
-        self.statistics = Solution.Statistics(
-            maxtime=-1,
-            sumtime=0,
-            batchresults={},
-            result=Status.ok,
-            times=defaultdict(list),
-            failedbatches=set(),
-        )
 
     @staticmethod
     def get_statistics_header(inputs: Iterable[str]) -> str:
@@ -465,6 +466,10 @@ class Solution(Program):
 
 
 class Validator(Solution):
+    def __init__(self, name: str, args: Args):
+        super().__init__(name, args)
+        self.statistics.result = Status.valid
+
     @staticmethod
     def filename_befits(filename: str) -> bool:
         return to_base_alnum(filename).startswith("val")
@@ -502,12 +507,15 @@ class Validator(Solution):
     def run_args(self, ifile: str) -> str:
         return " ".join(ifile.split("/")[-1].split(".")) + " "
 
-    def __init__(self, name: str, args: Args):
-        super().__init__(name, args)
-        self.statistics.result = Status.valid
-
 
 class Checker(Program):
+    def __init__(self, name: str, args: Args):
+        super().__init__(name, args)
+        if name == "diff":
+            self.run_cmd = "diff"
+            self.compilecmd = None
+            self.forceexecute = True
+
     @staticmethod
     def filename_befits(filename: str) -> str | None:
         filename = to_base_alnum(filename)
@@ -519,13 +527,6 @@ class Checker(Program):
 
     def compare_mask(self) -> Tuple[int, int, str]:
         return (-3, 0, self.name)
-
-    def __init__(self, name: str, args: Args):
-        super().__init__(name, args)
-        if name == "diff":
-            self.run_cmd = "diff"
-            self.compilecmd = None
-            self.forceexecute = True
 
     def diff_cmd(self, ifile: str, ofile: str, tfile: str) -> str | None:
         diff_map = {
