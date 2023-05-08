@@ -401,10 +401,10 @@ class Solution(Program):
 
     def run(self, ifile: str, ofile: str, tfile: str, checker: Checker) -> None:
         batch = os.path.basename(ifile).split(".")[0]
-        if Config.fskip and batch in self.statistics.failedbatches:
+        isvalidator = isinstance(self, Validator)
+        if not isvalidator and Config.fskip and batch in self.statistics.failedbatches:
             return
 
-        isvalidator = isinstance(self, Validator)
         if not self.ready:
             self.logger.error("%s not prepared for execution" % self.name)
         so = subprocess.PIPE if self.quiet else None
