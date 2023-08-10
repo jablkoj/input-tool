@@ -1,47 +1,63 @@
 #!/usr/bin/env python3
 # (c) 2014 jano <janoh@ksp.sk>
 # Script that helps generating inputs for contests
-description = '''
+description = """
 Input generator.
 Generate inputs based on input description file. Each line is provided as input to
 generator. Empty lines separate batches.
-'''
+"""
 options = [
-    'indir', 'inext',
-    'compile', 'execute', 'gencmd',
-    'colorful', 'quiet',
-    'clearinput', 'clearbin',
-    'description',
+    "indir",
+    "inext",
+    "compile",
+    "execute",
+    "gencmd",
+    "pythoncmd",
+    "threads_gen",
+    "colorful",
+    "quiet",
+    "clearinput",
+    "clearbin",
+    "description",
 ]
 
-from input_tool.common.parser import Parser
-from input_tool.common.recipes import Recipe
-from input_tool.common.commands import Generator
-from input_tool.common.messages import *
 import atexit
+from concurrent.futures import ThreadPoolExecutor
 import os
 import sys
 
+from input_tool.common.commands import Config, Generator
+from input_tool.common.messages import *
+from input_tool.common.parser import Parser, ArgsGenerator
+from input_tool.common.recipes import Recipe
+
 parser = Parser(description, options)
-args = parser.parse()
-Color.setup(args)
+args = parser.parse(ArgsGenerator)
+Color.setup(args.colorful)
+
+for key in ("pythoncmd", "quiet", "compile", "execute"):
+    setattr(Config, key, getattr(args, key))
 
 if args.description:
-    recipe = Recipe(open(args.description, 'r'))
+    with open(args.description, "r") as f:
+        recipe = Recipe(f.readlines())
 else:
-    recipe = Recipe(sys.stdin)
+    recipe = Recipe(sys.stdin.readlines())
 
 recipe.process()
-programs = {x:Generator(x,args) for x in recipe.programs}
+programs = {x: Generator(x) for x in recipe.programs}
 
 # {{{ ----------- prepare programs -------------------
 gencmd = args.gencmd
-programs[gencmd] = Generator(gencmd, args)
+programs[gencmd] = Generator(gencmd)
 
-def cleanup():
+
+def cleanup() -> None:
     if args.clearbin:
         for p in programs:
             programs[p].clear_files()
+
+
 atexit.register(cleanup)
 
 for p in sorted(programs):
@@ -57,34 +73,46 @@ filestoclear = os.listdir(indir)
 if len(filestoclear) and args.clearinput:
     infob("Cleaning directory '%s:'" % indir)
     # delete only following files
-    exttodel = ['in', 'out', 'temp', args.inext]
+    exttodel = ["in", "out", "temp", args.inext]
     for file in filestoclear:
-        if file.endswith(args.inext) and 'sample' in file:
+        if file.endswith(args.inext) and "sample" in file:
             info("  ommiting file '%s'" % file)
-        elif file.rsplit('.',1)[-1] not in exttodel:
+        elif file.rsplit(".", 1)[-1] not in exttodel:
             info("  not deleting file '%s'" % file)
         else:
-            os.remove('%s/%s' % (indir, file))
+            os.remove("%s/%s" % (indir, file))
 
 
-infob('Generating:')
+infob("Generating:")
 recipe.inputs.sort()
 leftw = max([len(i.get_name(ext=args.inext)) for i in recipe.inputs])
 prev = None
 
-for input in recipe.inputs:
-    ifile = input.get_name(path=indir + '/', ext=args.inext)
-    short = ('{:>' + str(leftw) + 's}').format(input.get_name(ext=args.inext))
+with ThreadPoolExecutor(max_workers=args.threads) as executor:
+    get_ifile = lambda x: x.get_name(path=indir + "/", ext=args.inext)
+    futures = []
+    for input in recipe.inputs:
+        ifile = get_ifile(input)
+        future = executor.submit(
+            programs[input.generator or gencmd].generate,
+            ifile,
+            input.get_generation_text(),
+        )
+        futures.append((future, input))
 
-    programs[input.generator or gencmd].generate(
-        ifile,
-        input.get_generation_text(),
-    )
+    # for input, future in futures:
+    for future, input in futures:
+        status = future.result()
+        ifile = get_ifile(input)
+        short = ("{:>" + str(leftw) + "s}").format(input.get_name(ext=args.inext))
 
-    if prev and prev.batch != input.batch:
-        print(' ' * (leftw + 4) + '.')
-    prev = input
+        if prev and prev.batch != input.batch:
+            print(" " * (leftw + 4) + ".")
+        prev = input
 
-    print('  %s  <  %s' % (short, input.get_info_text(len(short)+4)))
+        msg = "  %s  <  %s" % (short, input.get_info_text(len(short) + 4))
+        if status != Status.ok:
+            msg += "\t!Generator encountered an error!"
+        print(Color.colorize(status, msg))
 
-infob('Done')
+infob("Done")

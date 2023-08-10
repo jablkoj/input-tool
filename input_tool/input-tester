@@ -1,121 +1,248 @@
 #!/usr/bin/env python3
 # (c) 2014 jano <janoh@ksp.sk>
 # Complex script that can test solutions
-description = '''
+description = """
 Input tester.
 Test all given solutions on all inputs.
-By default, if outputs dont exits, use the first solution to generate them.
+By default, if outputs don't exits, use the first solution to generate them.
 By default, automatically decide, how to compile and run solution.
-'''
+"""
 options = [
-    'indir', 'outdir', 'inext', 'outext', 'tempext', 'reset',
-    'timelimit', 'diffcmd',
-    'compile', 'execute', 'sort',
-    'colorful', 'colortest', 'quiet', 'stats',
-    'cleartemp', 'clearbin',
-    'programs',
+    "indir",
+    "outdir",
+    "inext",
+    "outext",
+    "tempext",
+    "reset",
+    "timelimit",
+    "warntimelimit",
+    "memorylimit",
+    "diffcmd",
+    "compile",
+    "execute",
+    "sort",
+    "colorful",
+    "colortest",
+    "quiet",
+    "stats",
+    "nostats",
+    "cleartemp",
+    "clearbin",
+    "programs",
+    "fskip",
+    "dupprog",
+    "pythoncmd",
+    "threads_test",
+    "rustime",
 ]
 
-from input_tool.common.parser import Parser
-from input_tool.common.commands import Solution, Validator, Checker
-from input_tool.common.messages import *
 import atexit
+from concurrent.futures import ThreadPoolExecutor
+import itertools
 import os
 
+from input_tool.common.commands import (
+    Langs,
+    Config,
+    Program,
+    Solution,
+    Validator,
+    Checker,
+)
+from input_tool.common.messages import *
+from input_tool.common.parser import Parser, ArgsTester
+
 parser = Parser(description, options)
-args = parser.parse()
+args = parser.parse(ArgsTester)
 if args.colortest:
     color_test()
     quit(0)
 
-Color.setup(args)
+Color.setup(args.colorful)
+
+if args.deprecated:
+    for option in args.deprecated:
+        warning("Option '%s' is deprecated." % option)
+
+for key in ("pythoncmd", "fskip", "memorylimit", "quiet", "compile", "execute"):
+    setattr(Config, key, getattr(args, key))
+Config.rus_time = os.access("/usr/bin/time", os.X_OK) and args.rustime
+
+
+def parse_timelimit(str_timelimit: str) -> dict[Langs.Lang | str, float]:
+    res: dict[Langs.Lang | str, float] = {}
+    for p in str_timelimit.split(","):
+        ext, t = p.split("=") if "=" in p else ("", p)
+        t = float(t)
+        res[ext] = t
+        res[Langs.from_ext(ext)] = t
+    return res
+
+
+Config.timelimits.update(parse_timelimit(args.timelimit))
+Config.warn_timelimits.update(parse_timelimit(args.warntimelimit))
 
 # {{{ ------------ prepare programs ------------------
-solutions = []
-checker = Checker(args.diffcmd, args)
-for p in args.programs:
-    if Validator.is_validator(p):
-        solutions.append(Validator(p, args))
+
+
+def get_relevant_prog_files_in_directory(directory: str) -> list[str]:
+    return [
+        de.path
+        for de in os.scandir(directory)
+        if de.is_file()
+        and any(cl.filename_befits(de.name) for cl in (Solution, Validator, Checker))
+    ]
+
+
+solutions: list[Solution | Validator] = []
+checkers: list[str] = []
+files = list(
+    itertools.chain.from_iterable(
+        get_relevant_prog_files_in_directory(p) if os.path.isdir(p) else [p]
+        for p in args.programs
+    )
+)
+if not args.dupprog:  # remove duplicate paths
+    files = list(set(files))
+for p in files:
+    if Validator.filename_befits(p):
+        solutions.append(Validator(p))
+    elif Checker.filename_befits(p):
+        checkers.append(p)
     else:
-        solutions.append(Solution(p, args))
+        solutions.append(Solution(p))
+if args.diffcmd is not None:
+    checkers = [args.diffcmd]
+if not checkers:
+    checkers.append("diff")
+if len(checkers) > 1:
+    error(
+        f"More than one checker found {checkers}.\n"
+        + "Set explicitly with -d/--diffcmd (e.g. -d diff) "
+        + "or leave only one checker in the directory."
+    )
+checker: Checker = Checker(checkers[0])
 if args.sort:
     solutions.sort()
 programs = [checker]
 programs += solutions
 
 
-def cleanup():
+def cleanup() -> None:
     if args.clearbin:
         for p in programs:
             p.clear_files()
+
+
 atexit.register(cleanup)
 
 for p in programs:
     p.prepare()
-#}}}
+
+# multiple solutions can have same run command after compilation
+if not args.dupprog:
+    d: dict[str, Program] = {}
+    l: list[Solution | Validator] = []
+    for s in solutions:
+        key = s.run_cmd
+        if key in d:
+            warning(
+                "Solution %s and %s have the same run command. "
+                "Keeping only first." % (d[key].name, s.name)
+            )
+        else:
+            d[key] = s
+            l.append(s)
+    solutions = l
+
+parallel_logger_manager = ParallelLoggerManager()
+for sol in solutions:
+    sol.logger = parallel_logger_manager.get_sink()
+
+
+# }}}
 # {{{ ------------ prepare inputs ----------------
 
-inputs = sorted(filter(lambda x: x.endswith(args.inext),
-                       os.listdir(args.indir)))
+inputs = sorted(filter(lambda x: x.endswith(args.inext), os.listdir(args.indir)))
 
 if args.outext != args.tempext and not args.reset:
-    outputs = sorted(filter(lambda x: x.endswith(args.outext),
-                            os.listdir(args.outdir)))
+    outputs = sorted(filter(lambda x: x.endswith(args.outext), os.listdir(args.outdir)))
     if len(outputs) > 0 and len(outputs) < len(inputs):
         warning("Incomplete output files.")
 else:
     infob("Outputs will be regenerated")
 
 
-def get_result_file(out_file, temp_file, isvalidator):
-    if isvalidator:
+def get_result_file(
+    out_file: str, temp_file: str, isvalidator: bool, force: str = "none"
+):
+    if isvalidator or force == "temp":
         return temp_file
-    if args.reset:
+    if not os.path.exists(out_file) or force == "out":
         return out_file
-    if os.path.exists(out_file):
-        return temp_file
-    else:
-        infob("File %s not found. Will be created now." % out_file)
-        return out_file
+    return temp_file
 
 
-def temp_clear():
-    tempfiles = sorted(filter(lambda x: x.endswith(args.tempext),
-                              os.listdir(args.outdir)))
+def temp_clear() -> None:
+    tempfiles = sorted(
+        filter(lambda x: x.endswith(args.tempext), os.listdir(args.outdir))
+    )
     if len(tempfiles):
         info("Deleting all .%s files" % args.tempext)
         for tempfile in tempfiles:
-            os.remove(args.outdir + '/' + tempfile)
+            os.remove(args.outdir + "/" + tempfile)
+
 
 temp_clear()
 
-setattr(args, 'inside_oneline', len(solutions) <= 1)
-setattr(args, 'inside_inputmaxlen', max(map(len, inputs)))
+Config.inside_oneline = len(solutions) <= 1
+Config.inside_inputmaxlen = max(map(len, inputs))
 
-#}}}
+# }}}
 
 # ------------ test solutions ----------------
 
 for input in inputs:
-    input_file = args.indir + '/' + input
-    output_file = args.outdir + '/' + \
-        input.rsplit('.', 1)[0] + '.' + args.outext
-    temp_file = args.outdir + '/' + \
-        input.rsplit('.', 1)[0] + '.' + args.tempext
+    input_file = args.indir + "/" + input
+    output_file = args.outdir + "/" + input.rsplit(".", 1)[0] + "." + args.outext
+    temp_file = args.outdir + "/" + input.rsplit(".", 1)[0] + ".{}." + args.tempext
 
     if len(solutions) > 1:
         print("%s >" % (input))
 
-    for sol in solutions:
-        result_file = get_result_file(
-            output_file,
-            temp_file,
-            isinstance(sol, Validator),
-        )
-        sol.run(input_file, output_file, result_file, checker, args)
-        if (args.cleartemp and output_file != result_file and
-            os.path.exists(result_file)):
-            os.remove(result_file)
+    generated_output = False
+    futures = []
+    with ThreadPoolExecutor(max_workers=args.threads) as executor:
+        for si, sol in enumerate(solutions):
+            result_force = (
+                "temp" if generated_output else "out" if args.reset else "none"
+            )
+            result_file = get_result_file(
+                output_file,
+                temp_file.format(si),
+                isinstance(sol, Validator),
+                result_force,
+            )
+            if result_file == output_file:
+                reason = ("doesn't exist", "recompute")[os.path.exists(output_file)]
+                infob("File %s will be created now (%s)." % (output_file, reason))
+                generated_output = True
+
+            def run_sol(sol: Solution, result_file: str) -> None:
+                sol.run(input_file, output_file, result_file, checker)
+                if (
+                    args.cleartemp
+                    and output_file != result_file
+                    and os.path.exists(result_file)
+                ):
+                    os.remove(result_file)
+
+            futures.append(executor.submit(run_sol, sol, result_file))
+
+        for future, logger in zip(futures, parallel_logger_manager.sinks):
+            future.result()
+            plain(logger.read(), "")
+        parallel_logger_manager.clear_buffers()
 
 # ------------ print sumary ------------------
 

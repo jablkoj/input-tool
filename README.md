@@ -1,183 +1,210 @@
-### *Novinky (alebo prečo sa oplatí upgradenuť)*
+## Zmeny voči jablkoj
 
-*23. máj 2018 -- čiastočná podpora pre Mac OS*
+<details>
+<summary>Zmeny</summary>
 
-*18. apríl 2017 -- validátory dostávajú ako argumenty názov súboru*
+- **Podpora priečinkov v zozname programov** (automatické načítanie všetkých riešení, validátorov a checkera z priečinku)
+- Časovanie
+  - Desatinný timelimit `-t 0.5`
+  - **Jazykový timelimit** `-t "3,cpp=1,py=5"`
+  - Detailnejšie vypisovanie trvania programov
+    - **Milisekundová presnosť**
+    - Zobrazovanie celkového času namiesto _User time_
+    - Vypisovanie _Real/User/System time_
+    - TLE čas sa neráta do `Max time`
+  - Varovný timelimit pomocou `--wtime`
+- Lepšie predvolené nastavenia
+  - **Preskakovanie zvyšných vstupov** v sade po odmietnutí (vypnúť cez `-F`)
+  - Štatistiky po vyhodnotení (vypnúť cez `--no-statistics`)
+  - **Kompilovanie C++ s optimalizáciami a novším štandardom**
+  - Zvýšené limity pre pamäť a zásobník
+  - **Deduplikovanie programov na vstupe** (spolu s `-K` umožnuje rýchlejšie testovanie, vypnúť cez `--dupprog`)
+  - **Paralelné generovanie vstupov a testovanie** (pomocou prepínača `-j`)
+- Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd`
+- **Rozšírená funkcionalita IDF o vlastné premenné**
+- Možnosť nemať nainštalovaný `time`
+- Zrušená podpora pre Python2
+- Kompilovanie Java riešení v dočasnom priečinku
+- Informovanie o neúspešnom generovaní vstupov
+- Sformátovaný a otypovaný kód
+- Prepísané README
+- Bugfixes
 
-*22. január 2017 -- pridaná podpora pre validátory pre input-tester*
+</details>
 
-*23. január 2017 -- pridaný skript input-sample na výrobu sample vstupov so zadania*
+## Rýchlokurz
 
-*28. január 2017 -- trocha dokončené špeciálne fičúry IDF, spísanie návodu do ADVANCED-IDF.md*
+```bash
+# napíšeme si riešenia, generátor, idf.txt a potom:
+input-sample zadanie.md # nepovinné
+input-generator idf.txt
+input-tester .
 
-# input-tool
-Nástroj, ktorý výrazne zjednodušuje vytváranie a testovanie vstupov pre súťažné programátorské príklady. 
-Skladá sa z troch častí -- **input-sample**, **input-generator** a **input-tester**
+# o pomoc požiadame `input-<program> -h`, napríklad:
+input-generator -h
+```
 
-### Inštalácia
+# `input-tool`
+
+Nástroj, ktorý výrazne zjednodušuje vytváranie a testovanie vstupov pre súťažné programátorské príklady. Skladá sa z troch častí &ndash; **`input-sample`**, **`input-generator`** a **`input-tester`**.
+
+## Inštalácia
+
 Na **Linuxe** je to dosť jednoduché.
 
-1. Prerekvizity --
-  Potrebujete mať nainštalovaný `python3`, príkaz `time` (nestačí bashová funkcia) a
-  kompilátory C/C++ (kompilujeme pomocou `make`, Pascalu (`fpc`) a Javy. 
-  Java a Pascal nie su nutné, ak neplánujete takéto programy spúšťať.
-  Na konci `.bashrc` odporúčame mať  
-  `export CXXFLAGS="-O2 -std=gnu++11 -Wno-unused-result -DDG=1"`   
-  aby sa vaše programy spúštali rovnako ako na testovači.
-  
-2. Nainštalujte cez `pip` --  
-  `pip install git+https://github.com/jablkoj/input-tool.git`
-  Tento nástroj sa stále vyvíja, takže je fajn raz za čas stiahnuť najnovšiu
-   verziu. Stačí napísať `pip install -U git+https://github.com/jablkoj/input-tool.git` a všetko sa stiahne samé.
+1. Prerekvizity:
 
-Na **Mac OS** by to malo fungovať s trochou búchania kladivom. Správny program na meranie času sa dá nainštalovať pomocou `brew install gnu-time --with-default-names`, potom treba buď spraviť alias, alebo zmeniť cestu v `common/commands.py:time_cmd`. Ak bude veľký záujem, nakódim lepšiu podporu pre Mac OS.
-Aktuálne nepodrporujeme **Windows**, ale môžete sa pokúsiť to rozbehať. 
+   - Potrebujete `python3`
+   - Odporúčame `time` (nestačí bashová funkcia)
+   - Potrebujete kompilátory C/C++ (kompilujeme pomocou `make`), Pascalu (`fpc`), Javy, Rustu (`rustc`) &ndash; samozrejme iba pre jazyky ktoré plánujete spúštať
 
-# input-sample
+2. Nainštalujte cez `pip`:
+
+   ```bash
+   pip install git+https://github.com/fezjo/input-tool.git
+   # alebo
+   git clone git@github.com:fezjo/input-tool.git
+   pip install -e .
+   ```
+
+   Aktualizuje sa pomocou:
+
+   ```bash
+   pip install -U git+https://github.com/fezjo/input-tool.git
+   # alebo
+   git pull
+   ```
+
+# `input-sample`
+
 Tento skript dostane na vstupe (alebo ako argument) zadanie príkladu. Vyrobí (defaultne v priečinku `./test`) sample vstupy a sample výstupy pre tento príklad.
 
-Defaultne pomenúva súbory `00.sample.in` resp. `00.sample.x.in`, ak je ich viac. Viete mu povedať, aby pomenúval vstupy inak, napr. `O.sample.in`, alebo `00.sample.a.in` aj keď je len jeden vstup.
-Dá sa nastaviť priečinok, kde sa vstupy a výstupy zjavia, a tiež prípony týchto súborov.
+Defaultne pomenúva súbory `00.sample.in` resp. `00.sample.x.in`, ak je ich viac. Viete mu povedať, aby pomenúval vstupy inak, napr. `0.sample.in`, alebo `00.sample.a.in` aj keď je len jeden vstup. Dá sa nastaviť priečinok, kde sa vstupy a výstupy zjavia, a tiež prípony týchto súborov.
 
-Príklady použitia (spúšťame napríklad v `SVN/35rocnik/zima1/1/`):
+Príklady použitia:
+
+```bash
+input-sample -h
+input-sample prikl1.md
+input-sample -p 0.sample < cesta/k/zadaniam/prikl2.md
 ```
-$  input-sample GIT/zadania/35rocnik/zima1/zadania/prikl1.md
-$  input-sample -p 0.sample -m < cesta/prikl2.md
-$  input-sample -h 
+
+# `input-generator`
+
+1. Najskôr treba nakódiť **generátor**, ktorý nazvite `gen` (teda napr. `gen.cpp` alebo `gen.py`).
+2. Následne vytvoríte **IDF**, vysvetlené nižšie.
+3. Spustíte `input-generator` pomocou `input-generator idf` a tešíte sa.
+
+## Generátor
+
+Názov generátoru sa začína `gen` (napríklad `gen.cpp`). Generátor je program, ktorý berie na vstupe jeden riadok (kde dáte čo chcete, napríklad dve čísla, maximálne $n$ a $m$.) Tento program vypíše, normálne na `stdout`, jeden vstup úlohy.
+
+Dávajte si pozor, aby bol vypísaný vstup korektný, žiadne medzery na koncoch riadkov, dodržujte limity, čo sľubujete v zadaní (toto všetko vieme automatizovane zaručiť s pomocou validátora). Jedna z vecí, čo je dobré robiť, je generovať viacero typov vstupov. (Povedzme náhodné čísla, veľa clustrov rovnakých, samé párne lebo vtedy je bruteforce pomalý, atď.) To je dobré riešiť tak, že jedno z čísel, čo generátor dostane na vstupe je typ, podľa ktorého sa rozhodne, čo vygeneruje.
+
+```bash
+# Odporúčané je použiť základný tvar:
+input-generator idf
 ```
 
-# input-generator
+## IDF
 
-1. Najskôr treba nakódiť **generátor**, ktorý nazvite `gen`, teda napr. `gen.cpp` alebo `gen.py`. 
-(Ako generátor môžete teoreticky použiť hociaký príkaz, celkom užitočný je `cat`.)
-2. Následne vytvoríte **IDF**, vysvetlené nižšie
-3. Spustíte input-generátor a tešíte sa.
+IDF (Input Description File) je súbor, ktorý popisuje, ako vyzerajú sady a vstupy. Jeden riadok IDF slúži na vyrobenie jedného vstupu (až na špeciálne riadky). Každý takýto riadok poslúži ako vstup pre generátor a to, čo generátor vypľuje sa uloží do správneho súboru, napr. `02.a.in`. Čiže do IDF chcete obvykle písať veci ako maximálne $n$ (alebo aj presné $n$), typ vstupu, počet hrán grafu, atď., ale to už je na generátori aby sa rozhodol, čo s tými číslami spraví.
 
-### Generátor
-Generátor sa bežne volá `gen` (príponu si `input-tool` vie domyslieť, takže `gen.py`, `gen.cpp`, `gen.pas`, ... je všetko obsiahnté pod `gen`). Ak sa váš generátor volá inak, treba to povedať testeru pomocou prepínača `-g`.
-Generátor je program, ktorý berie na vstupe jeden riadok (kde dáte čo chcete, napríklad dve čísla, maximálne $n$ a $m$.)
-Tento program vypíše, normálne na stdout, jeden vstup úlohy. Dávajte si pozor, aby bol vypísaný vstup korektný,
-žiadne medzery na koncoch riadkov, dodržujte limity, čo sľubujete v zadaní. 
-Jedna z vecí, čo je dobré robiť, je generovať viacero typov vstupov.
-(Povedzme náhodné čísla, veľa clustrov rovnakých, samé párne lebo vtedy je bruteforce pomalý, atď.) 
-To je dobré riešiť tak, že jedno z čísel, čo generátor dostane na vstupe je typ, 
-podľa ktorého sa rozhodne, čo vygeneruje.
-
-O zvyšné veci by sa mal postarať `input-generator`.
-
-### IDF
-IDF -- input description file -- je súbor, ktorý popisuje, ako vyzerajú sady a vstupy. 
-Jeden riadok IDF slúži na vyrobenie jedného vstupu (až na špeciálne riadky). 
-Každý takýto riadok poslúži ako vstup pre generátor a to, čo generátor vypľuje sa uloží do správneho súboru,
-napr. `02.a.in`. Čiže do IDF chcete obvykle písať veci ako maximálne $n$ (alebo aj presné $n$), typ vstupu, 
-počet hrán grafu, atď., ale to už je na generátori aby sa rozhodol, čo s tými číslami spraví.
-
-Vstupy v jednej sade sú postupne písmenkované `a-z` (ak je ich veľa, tak sa použije viac písmen). 
-Sady v IDF oddeľujeme práznymi riadkami. Sady sú číslované `1..9`, ak je ich napr. `20`, tak `01..20`.
+Sady v IDF oddeľujeme práznymi riadkami. Sady sú číslované `1..9`, ak je ich napr. `20`, tak `01..20`. Vstupy v jednej sade sú postupne písmenkované `a-z` (ak je ich veľa, tak sa použije viac písmen).
 
 Príklad IDF
-```
-10 1000 1
-20 1000 2
-30 1000 3
 
-1000 1000000 1
-1000 1000000 2
 ```
+# id pocet_vrcholov pocet_hran pocet_hracov
+# 1. sada
+{id} 10 1000 1
+{id} 20 1000 2
+{id} 30 1000 3
+
+# 2.sada
+$ hran=1000000
+{id} 1000 {hran} 1
+{id} 1000 {hran} 2
+```
+
 Vyrobí postupne vstupy `1.a.in`, `1.b.in`, `1.c.in`, `2.a.in`, `2.b.in`.
 
-### Spúšťanie
+**Ak chcete niečim inicializovať `seed` vo svojom generátore, tak rozumný nápad je `{id}`**, pretože to je deterministické a zároveň unikátne pre každý vstup. Deterministické vstupy majú výhodu, že ak niekto iný pustí `input-generator` s rovnakými parametrami a rovnakým IDF, dostane rovnaké vstupy.
 
-Pokiaľ robíte vstupy do KSP, odporúčané je púšťať `input-generator idf` bez prepínačov, 
-aby ostatní vedúci vedeli vygenerovať rovnaké vstupy. Prepínače slúžia hlavne na to, ak robíte vstupy pre nejakú inú súťaž, kde sú iné prípony/ iná priečinková štruktúra. Iné prepínače zasa pomáhajú pri debugovaní.
+# `input-tester`
 
-Pokiaľ potrebujete robiť zveriny v KSP, napríklad použiť viac generátorov na jednu úlohu, toto sa dá špecifikovať v IDF.
-Ak chcete vedieť, aké cool veci navyše dokážete v IDF popísať, prečítajte si o nich v súbore `ADVANCED-IDF.md`.
+Cieľom tohto skriptu je otestovať všetky riešenia na vstupoch, overiť, či dávajú správne výstupy, zmerať čas behu a podobne.
 
-Mimochodom, keď commitujete vstupy, nezabudnite comitnúť aj generátor (nie binárku, len zdroják) a `idf`.
+**Pozor**, slúži to len na domáce testovanie, netestujte tým nejaké reálne kontesty, kde môžu užívatelia submitovať čo chcú. Nemá to totiž žiaden sandbox ani žiadnu ochranu pred neprajníkmi.
 
-```
-#  Odporúčané je použiť defaultný tvar:
-$  input-generator idf
+`input-tester` sa používa veľmi jednoducho. Iba spustíte `input-tester <zoznam riešení>` a ono to porobí všetko samé.
 
-#  Keď potrebujete, dá sa však spraviť mnoho iných vecí
-$  input-generator -i . -I input -g gen-special.cpp -qK < idf
+Odporúčame mať na konci `.bashrc` alebo pri spustení terminálu nastaviť kompilátory podobne ako sú na testovači, teda napríklad `export CXXFLAGS="-O2 -std=gnu++11 -Wno-unused-result -DDG=1"`.
 
-#  Pre pochopenie predošlého riadku spustite
-$  input-generator -h
-```
+Riešenia pomenúvame s prefixom '`sol`' štýlom `sol-<hodnotenie>-<autor>-<algoritmus>-<zlozitost>.<pripona>`. Teda názov má podmnožinu týchto častí v tomto poradí, teda napríklad `sol-75-fero-zametanie-n2.cpp` alebo `sol-100-dezo.py`. Validátor má prefix '`val`', prípadný hodnotič '`check`'.
 
-**Pozor** si treba dávať na to, že input-generátor, ak mu nepovieme prepínačom inak, 
-zmaže všetky staré vstupy, okrem samplov.
+### Generovanie výstupov
 
-# input-tester
+Ak ešte neexistuje vzorový výstup ku nejakému vstupu (teda napríklad ste práve vygenerovali vstupy), použije sa prvý program na jeho vygenerovanie. Ostatné programy porovnávajú svoje výstupy s týmto.
 
-Cieľom tohto skriptu je otestovať všetky riešenia na vstupoch, overiť, 
-či dávajú správne výstupy, zmerať čas behu a podobne. **Pozor**, slúži to len na domáce testovanie, 
-netestujte tým nejaké reálne kontesty, kde môžu užívatelia submitovať čo chcú. 
-Nemá to totiž žiaden sandbox ani žiadnu ochranu pred neprajníkmi.
-Na jeho použitie potrebujete, aby vám fungoval `/usr/bin/time`. Ak náhodou nefunguje, pogooglite, ako ho u seba rozbehať.
+Dôležité je, aby program, ktorý generuje výstupy zbehol na všetkých vstupoch správne. Pokial by sa niekde zrúbal/vyTLEl, tak môžu byť výstupy pošahané.
 
-Používa sa to veľmi jednoducho. Iba spustíte `input-tester <riešenie/viacriešení>` a ono to porobí všetko samé.
-Oplatí sa však vedieť nasledovné. 
+## Užitočné prepínače
 
-### Help
-```
-input-tester -h
-```
+### `-t --time`
 
-### Pregenerovanie výstupov
-Ak ešte neexistuje vzorový výstup ku nejakému vstupu, použije sa prvý program na jeho vygenerovanie. 
-Ostatné programy porovnávajú svoje výstupy s týmto.
+Neoptimálne riešenia by často bežali zbytočne dlho, ak vôbec aj dobehli. Tento argument nastaví časový limit v sekundách. Vie to byť desatinné číslo. Vie to byť rôzne pre jednotlivé jazyky. Napríklad `-t 1`, `t -0.5` alebo `-t "3,cpp=1,py=5"`.
 
-Dôležité je, aby program, ktorý generuje výstupy zbehol na všetkých vstupoch správne. Pokial by sa niekde zrúbal/vyTLEl, tak môžu byť výstupy pošahané. 
+### `-F --no-fskip`
 
-Už existujú výstupy ale sú zlé? `-R` prepíše výstupy nanovo tým, čo vyrobí program. Tento prepínač funguje podobne, ako `-T out`. Pri týchto monžostiach odporúčame púšťať len jeden program naraz, pretože každý ďalší pregeneruje vstupy znova. 
-Ale nemôžete sa na to spoliehať. Navyše každý program si bude myslieť, že má správne výstupy, aj keby nemal.
+Štandardne sa programy, ktoré na niektorom vstupe zlyhali nevyhodnocujú na zvyšných testov v danej sade. Takto to funguje na niektorých súťažiach a urýchľuje to testovanie napríklad bruteforcov. Často však takéto správanie necheme a preto ho môžeme týmto argumentom vypnúť.
 
-### Riešenie
-Prefix riešenia by mal byť "sol". Nie je to nutnosť, ale pomáha to niektorým veciam. 
-Teda nie `vzorak.cpp` ale `sol-vzorak.cpp` pripadne `sol-100-zametanie.cpp`.
+### `-R --Reset`
 
-Tieto skripty sú pomerne inteligentné, takže
-* Automaticky sa pokúsia zistiť, aký program ste chceli spustiť a občas aj skompiluje, čo treba skompilovať. 
-Ak napríklad zadáte `sol-bf` pokúsi sa nájsť, či tam nie je nejaké `sol-bf.py`, `sol-bf.cpp`.. a pokúsi sa doplniť.
-Rozonávané prípony sú `.c`, `.cc` = `.cpp`, `.pas`, `.java`, `.py` = `.py3`, `.py2`. 
-Tiež sa pokúsi určiť, ako ste program chceli spustiť, či `./sol.py` alebo `python3 sol.py`. 
-Samozrejme, hádanie nie je dokonalé ale zatiaľ mám skústenosti, že funguje dosť dobre. 
-Fičúry sa dajú vypnúť pomocou `--no-compile` (kompilácia), `-x` (celé automatické rozoznávanie).
-* Pokúsi sa (magicky) utriediť riešenia od najlepšieho po najhoršie. Poradie má zmysel napríklad, keď sa generujú nové výstupy. Napríklad `sol-vzorak` je lepšie ako `sol-100` a to je lepšie ako `sol-010`, to je lepšie ako `sol-4` a to je lepšie ako `sol-wa`.
-Triedenie sa dá vypnúť `--no-sort`.
+Už existujú výstupy ale sú zlé? `-R` prepíše výstupy nanovo tým, čo vyrobí prvý program.
 
-### Časový limit
-Často budete kódiť aj bruteforcy, ktoré by bežali pol hodiny a vám sa nechce čakať. Jednoducho použite prepínač 
-`-t <limit-v-sekundach>`. 
+### `-K --keep-bin`
 
-### Checker
-Správnosť výstupu sa nehodnotí tak, že ho len porovnáme so vzorovým? Treba checker? Nie je problém.
-Použite `-d check`, kde check je program, ktorý berie tri argumenty -- vstup, náš výstup, riešiteľov výstup.
-(Viac detailov a možností nájdete v helpe).
+Ponecháva binárne súbory po kompilácii, čím sa značne urýchľuje celkový čas testovania. Je možné, že sa na začiatku vypíše veľa varovaní &ndash; malo by to byť vporiadku, ale treba ich zohľadniť a dávať si pozor.
 
-### Validator
-Riešenie, ktoré sa začína `val` je považované za validátor. Validátor je program, ktorý na `stdin` dostane vstup a zrúbe sa (`exit 1`), ak vstup nebol správny. Na `stderr` môžete vypísať nejakú krátku správu, že čo bolo zle, na `stdout` radšej nič nepíšte. Pokiaľ nerobíte zveriny, tak sa `stdout` v podstate zahodí.
+### `-d --diff`
 
-Validátor navyše dostane ako argumenty názov vstupného súboru rozsekaný podľa bodky. Príklad: `./validator 00 sample a in < 00.sample.a.in`. Tieto argumenty môžete odignorovať, alebo využiť, a napríklad kontrolovať, že ak je číslo sady `01`, tak vstup má byť do 100, ak je číslo sady `02`, vstup má byť do 1000.
+Niektoré úlohy potrebujú na určenie správnosti hodnotič. Ten vie byť automaticky určený ak ako argument uvedieme priečinok v ktorom sa nachádza a hodnotič má štandardné meno. Ak tieto podmienky nie sú splnené, vieme ho manuálne určiť pomocou tohoto argumentu, napríklad `-d checker.py`.
 
-### Zobrazovanie
-Peknú tabuľku so zhrnutím zobrazíte pomocou `-s`
-Bežne sa výsledky zobrazujú farebne, dá sa to aj vypnúť. Tiež pokiaľ vás
-otravujú veci, čo vypisujú kompilátory a programy na stderr a podobne, dá sa to
-schovať pomocou `-q`.
+### `--pythoncmd`
+
+Niekedy by sme boli radi, keby Python nebol taký pomalý. To sa dá väčšinou vyriešiť použitím _PyPy_ interpretera. Dokážeme to určiť pomocou tohoto argumentu, použitím `--pythoncmd pypy3`.
+
+### `-j --threads`
+
+Generovanie a testovanie veľa vstupov a riešení často dlho trvá. Paralelizáciou práce vieme tento čas skrátiť. Paralelizácia však nie je priamočiare pozitívum. Keď dáme vstupy generovať so 100 vláknami, neuvidíme 100x zrýchlenie. Využitím príliš nadbytočného množstva vlákien si vieme výkon znížiť a optimálny počet vie byť oveľa menej než dostupný počet vlákien vášho procesoru.
+
+Paralelné testovanie prebieha iba v rámci jedného vstupu, teda druhý vstup sa začne testovať až keď všetky programy dobehnú na tom prvom. Pri testovaní viacero riešení naraz, budú časy ktoré nameriame väčšie ako tie pri sériovom testovaní. Odporúčame teda občas a hlavne pred zverejnením úloh pretestovať riešenia bez paralelizácie.
+
+Z týchto dôvodov je predvolené množstvo vlákien pre generátor 4 a pre testovač 1.
 
 ### Príklady
 
-```
-input-tester sol-vzorak
-input-tester -t 10 -sq sol-* 
-input-tester -R -d checker.py sol-vzorak.py
-input-tester sol-100-dynamika sol-50-n3-bruteforce.cpp validate.cpp -s
+```bash
+# pomoc!
 input-tester -h
+# najzákladnejšie použitie, keď máme všetko v aktuálnom priečinku
+input-tester .
+# chceme si ušetriť kompiláciu pri dodatočnom spustení
+input-tester -K .
+# chceme spustiť iba vzorové riešenia
+input-tester -K sol-100*
+# chceme vidieť na ktorých všetkých vstupoch programy nefungujú, nielen na ktorých sadách
+input-tester -KF .
+# bežné použitie, ak si dáme všetky riešenia do priečinku `sols`
+input-tester -K -t "3,cpp=0.5,py=5" sols .
 ```
+
+# Pokročilé
+
+Ak chcete vedieť, aké cool veci navyše dokážu `input-generator` a `IDF`, prečítajte si o nich v súbore [`GENERATOR.md`](GENERATOR.md).
+
+Ak chcete vedieť, aké cool veci navyše dokáže `input-tester` a **ako písať validátor a hodnotič**, prečítajte si o tom v súbore [`TESTER.md`](TESTER.md).
 
 # Feedback
 
