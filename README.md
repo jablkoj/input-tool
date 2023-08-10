@@ -1,36 +1,16 @@
-## Zmeny voči jablkoj
+### *Novinky (alebo prečo sa oplatí upgradenuť)*
 
-<details>
-<summary>Zmeny</summary>
+*10. august 2023 -- merge [fezjo features](https://github.com/fezjo/input-tool/tree/4d489243c2372e75f1b65bdcb88c0c1a2267f1ca)*
 
-- **Podpora priečinkov v zozname programov** (automatické načítanie všetkých riešení, validátorov a checkera z priečinku)
-- Časovanie
-  - Desatinný timelimit `-t 0.5`
-  - **Jazykový timelimit** `-t "3,cpp=1,py=5"`
-  - Detailnejšie vypisovanie trvania programov
-    - **Milisekundová presnosť**
-    - Zobrazovanie celkového času namiesto _User time_
-    - Vypisovanie _Real/User/System time_
-    - TLE čas sa neráta do `Max time`
-  - Varovný timelimit pomocou `--wtime`
-- Lepšie predvolené nastavenia
-  - **Preskakovanie zvyšných vstupov** v sade po odmietnutí (vypnúť cez `-F`)
-  - Štatistiky po vyhodnotení (vypnúť cez `--no-statistics`)
-  - **Kompilovanie C++ s optimalizáciami a novším štandardom**
-  - Zvýšené limity pre pamäť a zásobník
-  - **Deduplikovanie programov na vstupe** (spolu s `-K` umožnuje rýchlejšie testovanie, vypnúť cez `--dupprog`)
-  - **Paralelné generovanie vstupov a testovanie** (pomocou prepínača `-j`)
-- Podpora alternatívnych Python interpreterov (**PyPy**) pomocou `--pythoncmd cmd`
-- **Rozšírená funkcionalita IDF o vlastné premenné**
-- Možnosť nemať nainštalovaný `time`
-- Zrušená podpora pre Python2
-- Kompilovanie Java riešení v dočasnom priečinku
-- Informovanie o neúspešnom generovaní vstupov
-- Sformátovaný a otypovaný kód
-- Prepísané README
-- Bugfixes
+*23. máj 2018 -- čiastočná podpora pre Mac OS*
 
-</details>
+*18. apríl 2017 -- validátory dostávajú ako argumenty názov súboru*
+
+*22. január 2017 -- pridaná podpora pre validátory pre input-tester*
+
+*23. január 2017 -- pridaný skript input-sample na výrobu sample vstupov so zadania*
+
+*28. január 2017 -- trocha dokončené špeciálne fičúry IDF, spísanie návodu do ADVANCED-IDF.md (súbor už neexistuje)*
 
 ## Rýchlokurz
 
@@ -61,16 +41,16 @@ Na **Linuxe** je to dosť jednoduché.
 2. Nainštalujte cez `pip`:
 
    ```bash
-   pip install git+https://github.com/fezjo/input-tool.git
+   pip install git+https://github.com/jablkoj/input-tool.git
    # alebo
-   git clone git@github.com:fezjo/input-tool.git
+   git clone git@https://github.com/jablkoj/input-tool.git
    pip install -e .
    ```
 
    Aktualizuje sa pomocou:
 
    ```bash
-   pip install -U git+https://github.com/fezjo/input-tool.git
+   pip install -U git+https://github.com/jablkoj/input-tool.git
    # alebo
    git pull
    ```
