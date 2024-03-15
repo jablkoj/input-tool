@@ -1,3 +1,7 @@
+### [DEPRECATED]
+
+Vo vývoji tohto nástroja pokračuje Jožo tu: [github.com/fezjo/input-tool](https://github.com/fezjo/input-tool)
+
 ### *Novinky (alebo prečo sa oplatí upgradenuť)*
 
 *10. august 2023 -- merge [fezjo features](https://github.com/fezjo/input-tool/tree/4d489243c2372e75f1b65bdcb88c0c1a2267f1ca)*
