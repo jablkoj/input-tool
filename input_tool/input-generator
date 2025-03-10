@@ -85,7 +85,10 @@ if len(filestoclear) and args.clearinput:
 
 infob("Generating:")
 recipe.inputs.sort()
-leftw = max([len(i.get_name(ext=args.inext)) for i in recipe.inputs])
+try:
+    leftw = max([len(i.get_name(ext=args.inext)) for i in recipe.inputs])
+except ValueError:
+    leftw = 0
 prev = None
 
 with ThreadPoolExecutor(max_workers=args.threads) as executor:
