@@ -94,7 +94,7 @@ class Langs:
 
 
 class Config:
-    pythoncmd = "python3"
+    pythoncmd = "python"
     fskip: bool
     rus_time: bool
     timelimits: dict[Langs.Lang | str, float] = {Langs.Lang.unknown: 0}
@@ -203,11 +203,11 @@ class Program:
                 self.compilecmd = "rustc -C opt-level=2 %s.rs" % self.run_cmd
                 self.filestoclear.append(self.run_cmd)
 
-        if not os.access(self.run_cmd, os.X_OK):
-            if self.lang is Langs.Lang.python:
-                self.run_cmd = "%s %s" % (Config.pythoncmd, self.source)
-            if self.lang is Langs.Lang.java:
-                self.run_cmd = "java -Xss256m " + self.run_cmd
+        # if not os.access(self.run_cmd, os.X_OK):
+        if self.lang is Langs.Lang.python:
+            self.run_cmd = "%s %s" % (Config.pythoncmd, self.source)
+        if self.lang is Langs.Lang.java:
+            self.run_cmd = "java -Xss256m " + self.run_cmd
 
     def prepare(self) -> None:
         if self.compilecmd != None:
