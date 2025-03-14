@@ -241,8 +241,8 @@ class Parser:
             ("--pythoncmd",),
             {
                 dest: "pythoncmd",
-                default: "python3",
-                help: "what command is used to execute python, e.g. `python3` or `pypy3` (default=python3)",
+                default: "python",
+                help: "what command is used to execute python, e.g. `python`, `python3` or `pypy3` (default=python)",
             },
         ),
         "threads_gen": (

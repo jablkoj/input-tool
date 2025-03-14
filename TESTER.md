@@ -19,7 +19,7 @@ input-tester:
     program which checks correctness of output (default=diff),
     arguments given to program depends of prefix: diff $our $theirs, check $inp $our $theirs
   --pythoncmd
-    what command is used to execute python, e.g. `python3` or `pypy3`
+    what command is used to execute python, e.g. `python`, `python3` or `pypy3`
   -q, --quiet
     dont let subprograms print stuff
   -j THREADS, --threads THREADS
